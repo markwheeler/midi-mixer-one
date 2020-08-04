@@ -2492,7 +2492,7 @@ F 3 "" H 6250 8050 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L MIDI-Mixer-One-rescue:Teensy-LC-Teensy-MIDI-Mixer-One-v01-rescue U1
+L Teensy:Teensy-LC U1
 U 1 1 5EBE1898
 P 4200 8300
 F 0 "U1" H 4225 9537 60  0000 C CNN
