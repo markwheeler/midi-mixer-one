@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name MIDI-Mixer-One-v01-rescue)(type Legacy)(uri "${KIPRJMOD}/MIDI Mixer One v01-rescue.lib")(options "")(descr "")(disabled))
+  (lib (name Teensy)(type Legacy)(uri ${KIPRJMOD}/Libs/teensy.lib)(options "")(descr ""))
+)
