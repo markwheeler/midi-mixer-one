@@ -33,7 +33,6 @@ const int MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 #define POT_BITS                10 // 7-16 is valid
 #define POT_NUM_READS           8 // 1-32 is reasonable
 #define POT_SNAP_MULTIPLIER     0.1 // 0-1 lower values increase easing
-#include <ResponsiveAnalogRead.h>
 
 // Switch params
 #define BOUNCE_LOCK_OUT
@@ -62,9 +61,9 @@ const int SWITCH_PINS[] =       {3, 11, 7, 2, 6, 8, 1, 5, 9, 0, 4, 10};
 const int POT_RES = pow(2, POT_BITS);
 
 // Vars
-ResponsiveAnalogRead pots[NUM_POTS];
-Bounce switches[NUM_SWITCHES];
+float pot_values[NUM_POTS];
 int pot_midi_values[NUM_POTS];
+Bounce switches[NUM_SWITCHES];
 
 
 void setup() {
@@ -75,8 +74,7 @@ void setup() {
 
   // Pots
   for(int i = 0; i < NUM_POTS; i ++) {
-    pots[i] = ResponsiveAnalogRead(0, false, POT_SNAP_MULTIPLIER);
-    pots[i].setAnalogResolution(POT_RES);
+    pot_values[i] = 0;
   }
   
   for(int i = 0; i < NUM_MUX_SIGNAL_PINS; i ++) {
@@ -102,9 +100,45 @@ void send_all_pot_values() {
   }
 }
 
+float snapCurve(float x) {
+  float y = 1.0 / (x + 1.0);
+  y = (1.0 - y) * 2.0;
+  if(y > 1.0) {
+    return 1.0;
+  }
+  return y;
+}
+
+void updatePot(int pot, int newValue) {
+  float smoothValue = pot_values[pot];
+  
+  unsigned int diff = abs(newValue - smoothValue);
+
+  float snap = snapCurve(diff * POT_SNAP_MULTIPLIER);
+
+  // calculate the exponential moving average based on the snap
+  smoothValue += (newValue - smoothValue) * snap;
+
+  // ensure output is in bounds
+  if(smoothValue < 0.0) {
+    smoothValue = 0.0;
+  } else if(smoothValue > POT_RES - 1) {
+    smoothValue = POT_RES - 1;
+  }
+
+  //  responsiveValueHasChanged = responsiveValue != prevResponsiveValue;
+
+  // expected output is an integer
+  pot_values[pot] = smoothValue;
+
+//  if(pot == 39) {
+//    Serial.println(smoothValue);
+//  }
+}
+
 void loop() {
 
-//  unsigned long startTime = micros();
+  unsigned long startTime = micros();
 
   // Pots
   
@@ -118,34 +152,32 @@ void loop() {
 
     // Read from all muxes
     for(int m = 0; m < NUM_MUXES; m ++) {
-      int pot = MUX_POTS_BY_CHANNEL[m][c];
-//      int rawValue = analogRead(MUX_PINS[m]);
-      pots[pot].update(analogRead(MUX_PINS[m]));
+      updatePot(MUX_POTS_BY_CHANNEL[m][c], analogRead(MUX_PINS[m]));
     }
   }
   
   
 
   // Read master pot
-  pots[40].update(analogRead(MASTER_POT_PIN));
+//  pots[40].update(analogRead(MASTER_POT_PIN));
 //  Serial.print(pots[40].getRawValue() >> (POT_BITS - 7));
 //  Serial.print("\t");
 //  Serial.println(pots[40].getValue() >> (POT_BITS - 7));
   
   // Check values
-  for(int i = 0; i < NUM_POTS; i ++) {
-    if(pots[i].hasChanged()) {
-      
-      int new_midi_value = pots[i].getValue() >> (POT_BITS - 7);
-      if(new_midi_value != pot_midi_values[i]) {
-//        Serial.print(i);
-//        Serial.print(" changed to " );
-//        Serial.println(new_midi_value);
-        usbMIDI.sendControlChange(MIDI_CCS[i], new_midi_value, MIDI_CHANNEL);
-        pot_midi_values[i] = new_midi_value;
-      }
-    }
-  }
+//  for(int i = 0; i < NUM_POTS; i ++) {
+//    if(pots[i].hasChanged()) {
+//      
+//      int new_midi_value = pots[i].getValue() >> (POT_BITS - 7);
+//      if(new_midi_value != pot_midi_values[i]) {
+////        Serial.print(i);
+////        Serial.print(" changed to " );
+////        Serial.println(new_midi_value);
+//        usbMIDI.sendControlChange(MIDI_CCS[i], new_midi_value, MIDI_CHANNEL);
+//        pot_midi_values[i] = new_midi_value;
+//      }
+//    }
+//  }
 
   // Switches
   
@@ -180,7 +212,7 @@ void loop() {
   while (usbMIDI.read()) {
   }
 
-//  Serial.println(1000000 / (micros() - startTime));
+  Serial.println(1000000 / (micros() - startTime));
   
   delay(10); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
 
