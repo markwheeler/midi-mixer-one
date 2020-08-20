@@ -104,7 +104,7 @@ void send_all_pot_values() {
 
 void loop() {
 
-//  unsigned long startTime = micros();
+  unsigned long startTime = micros();
 
   // Pots
   
@@ -179,9 +179,9 @@ void loop() {
   // Discard incoming MIDI
   while (usbMIDI.read()) {
   }
-
-//  Serial.println(1000000 / (micros() - startTime));
   
-  delay(10); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
+  delay(1); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
+
+  Serial.println(1000000 / (micros() - startTime));
 
 }
