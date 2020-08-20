@@ -192,6 +192,6 @@ void loop() {
   
   delay(1); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
 
-//  Serial.println(1000000 / (micros() - startTime));
+  Serial.println(1000000 / (micros() - startTime));
 
 }
