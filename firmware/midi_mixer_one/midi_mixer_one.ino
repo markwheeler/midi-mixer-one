@@ -1,6 +1,7 @@
 // MIDI Mixer One
 // v1.0.0
 // Mark Eats / Mark Wheeler
+// Uses snippets from https://github.com/dxinteractive/ResponsiveAnalogRead/
 
 
 //// MIDI config ////
@@ -71,12 +72,8 @@ void setup() {
   
   analogReadResolution(POT_BITS);
   analogReadAveraging(POT_NUM_READS);
-
-  // Pots
-  for(int i = 0; i < NUM_POTS; i ++) {
-    pot_values[i] = 0;
-  }
   
+  // Pots
   for(int i = 0; i < NUM_MUX_SIGNAL_PINS; i ++) {
     pinMode(MUX_SIGNAL_PINS[i], OUTPUT);
   }
@@ -116,7 +113,7 @@ float smoothValue(float oldValue, int newValue) {
 }
 
 void loop() {
-
+  
   unsigned long startTime = micros();
 
   // Pots
@@ -195,6 +192,6 @@ void loop() {
   
   delay(1); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
 
-  Serial.println(1000000 / (micros() - startTime));
+//  Serial.println(1000000 / (micros() - startTime));
 
 }
