@@ -30,8 +30,9 @@ const int MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 
 
 // Pot params
-#define POT_BIT_RES             10 // 7-16 is valid
-#define POT_NUM_READS           4 // TODO test - 32 works
+#define POT_BITS                10 // 7-16 is valid
+#define POT_NUM_READS           8 // 1-32 is reasonable
+#define POT_SNAP_MULTIPLIER     0.1 // 0-1 lower values increase easing
 #include <ResponsiveAnalogRead.h>
 
 // Switch params
@@ -58,6 +59,8 @@ const int MUX_POTS_BY_CHANNEL[][NUM_MUX_CHANNELS] = {
 #define MASTER_POT_PIN          19
 const int SWITCH_PINS[] =       {3, 11, 7, 2, 6, 8, 1, 5, 9, 0, 4, 10};
 
+const int POT_RES = pow(2, POT_BITS);
+
 // Vars
 ResponsiveAnalogRead pots[NUM_POTS];
 Bounce switches[NUM_SWITCHES];
@@ -67,13 +70,13 @@ int pot_midi_values[NUM_POTS];
 void setup() {
   Serial.begin(38400);
   
-  analogReadResolution(POT_BIT_RES);
+  analogReadResolution(POT_BITS);
   analogReadAveraging(POT_NUM_READS);
 
   // Pots
   for(int i = 0; i < NUM_POTS; i ++) {
-    pots[i] = ResponsiveAnalogRead(0, true); // TODO consider options here
-    pots[i].setAnalogResolution(pow(2, POT_BIT_RES));
+    pots[i] = ResponsiveAnalogRead(0, false, POT_SNAP_MULTIPLIER);
+    pots[i].setAnalogResolution(POT_RES);
   }
   
   for(int i = 0; i < NUM_MUX_SIGNAL_PINS; i ++) {
@@ -101,6 +104,8 @@ void send_all_pot_values() {
 
 void loop() {
 
+//  unsigned long startTime = micros();
+
   // Pots
   
   for(int c = 0; c < NUM_MUX_CHANNELS; c ++) {
@@ -109,27 +114,33 @@ void loop() {
     for(int s = 0; s < NUM_MUX_SIGNAL_PINS; s ++) {
       digitalWrite(MUX_SIGNAL_PINS[s], bitRead(c, s));
     }
-    delayMicroseconds(50); // TODO tweak
+    delayMicroseconds(5); // TODO tweak
 
     // Read from all muxes
     for(int m = 0; m < NUM_MUXES; m ++) {
       int pot = MUX_POTS_BY_CHANNEL[m][c];
+//      int rawValue = analogRead(MUX_PINS[m]);
       pots[pot].update(analogRead(MUX_PINS[m]));
     }
   }
+  
+  
 
   // Read master pot
   pots[40].update(analogRead(MASTER_POT_PIN));
+//  Serial.print(pots[40].getRawValue() >> (POT_BITS - 7));
+//  Serial.print("\t");
+//  Serial.println(pots[40].getValue() >> (POT_BITS - 7));
   
   // Check values
   for(int i = 0; i < NUM_POTS; i ++) {
     if(pots[i].hasChanged()) {
       
-      int new_midi_value = pots[i].getValue() >> (POT_BIT_RES - 7);
+      int new_midi_value = pots[i].getValue() >> (POT_BITS - 7);
       if(new_midi_value != pot_midi_values[i]) {
-        Serial.print(i);
-        Serial.print(" changed to " );
-        Serial.println(new_midi_value);
+//        Serial.print(i);
+//        Serial.print(" changed to " );
+//        Serial.println(new_midi_value);
         usbMIDI.sendControlChange(MIDI_CCS[i], new_midi_value, MIDI_CHANNEL);
         pot_midi_values[i] = new_midi_value;
       }
@@ -168,6 +179,8 @@ void loop() {
   // Discard incoming MIDI
   while (usbMIDI.read()) {
   }
+
+//  Serial.println(1000000 / (micros() - startTime));
   
   delay(10); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
 
