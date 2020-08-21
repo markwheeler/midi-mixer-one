@@ -9,7 +9,7 @@
 #define MIDI_CHANNEL 1
 
 // Pot CCs
-const int MIDI_CCS[] = {
+const byte MIDI_CCS[] = {
   2, 3, 4, 5, 6,
   7, 8, 9, 10, 11,
   12, 13, 14, 15, 16,
@@ -22,7 +22,7 @@ const int MIDI_CCS[] = {
   };
 
 // Switch note numbers
-const int MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+const byte MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 
 // Define a key that sends all pot values (-1 to disable)
 #define SEND_ALL_KEY 8
@@ -34,6 +34,7 @@ const int MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 #define POT_BITS                10 // 7-16 is valid
 #define POT_NUM_READS           8 // 1-32 is reasonable
 #define POT_SNAP_MULTIPLIER     0.1 // 0-1 lower values increase easing
+#define POT_ACTIVITY_THRESHOLD  2 // Sleep zone
 
 // Switch params
 #define BOUNCE_LOCK_OUT
@@ -47,9 +48,9 @@ const int MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 #define NUM_MUX_CHANNELS        8
 #define NUM_SWITCHES            12
 
-const int MUX_PINS[] =          {14, 15, 16, 17, 18};
-const int MUX_SIGNAL_PINS[] =   {23, 22, 21};
-const int MUX_POTS_BY_CHANNEL[][NUM_MUX_CHANNELS] = {
+const byte MUX_PINS[] =         {14, 15, 16, 17, 18};
+const byte MUX_SIGNAL_PINS[] =  {23, 22, 21};
+const byte MUX_POTS_BY_CHANNEL[][NUM_MUX_CHANNELS] = {
   {1, 2, 3, 0, 4, 5, 7, 6},
   {11, 8, 9, 10, 14, 15, 13, 12},
   {17, 18, 19, 16, 23, 20, 22, 21},
@@ -57,13 +58,13 @@ const int MUX_POTS_BY_CHANNEL[][NUM_MUX_CHANNELS] = {
   {33, 34, 39, 32, 38, 35, 37, 36},
 };
 #define MASTER_POT_PIN          19
-const int SWITCH_PINS[] =       {3, 11, 7, 2, 6, 8, 1, 5, 9, 0, 4, 10};
+const byte SWITCH_PINS[] =      {3, 11, 7, 2, 6, 8, 1, 5, 9, 0, 4, 10};
 
 const int POT_RES = pow(2, POT_BITS);
 
 // Vars
 float pot_values[NUM_POTS];
-int pot_midi_values[NUM_POTS];
+byte pot_midi_values[NUM_POTS];
 Bounce switches[NUM_SWITCHES];
 
 
@@ -74,12 +75,12 @@ void setup() {
   analogReadAveraging(POT_NUM_READS);
   
   // Pots
-  for(int i = 0; i < NUM_MUX_SIGNAL_PINS; i ++) {
+  for(byte i = 0; i < NUM_MUX_SIGNAL_PINS; i ++) {
     pinMode(MUX_SIGNAL_PINS[i], OUTPUT);
   }
 
   // Switches
-  for(int i = 0; i < NUM_SWITCHES; i ++) {
+  for(byte i = 0; i < NUM_SWITCHES; i ++) {
     pinMode(SWITCH_PINS[i], INPUT_PULLUP);
     switches[i] = Bounce();
     switches[i].attach(SWITCH_PINS[i]);
@@ -92,7 +93,7 @@ void setup() {
 }
 
 void send_all_pot_values() {
-  for(int i = 0; i < NUM_POTS; i ++) {
+  for(byte i = 0; i < NUM_POTS; i ++) {
     usbMIDI.sendControlChange(MIDI_CCS[i], pot_midi_values[i], MIDI_CHANNEL);
   }
 }
@@ -107,7 +108,13 @@ float snapCurve(float x) {
 }
 
 float smoothValue(float oldValue, int newValue) {
-  unsigned int diff = abs(newValue - oldValue);
+
+  int diff = abs(newValue - oldValue);
+  
+  if(diff < POT_ACTIVITY_THRESHOLD) {
+    return oldValue;
+  }
+  
   float snap = snapCurve(diff * POT_SNAP_MULTIPLIER);
   return oldValue + (newValue - oldValue) * snap;
 }
@@ -117,18 +124,19 @@ void loop() {
   unsigned long startTime = micros();
 
   // Pots
-  
-  for(int c = 0; c < NUM_MUX_CHANNELS; c ++) {
+
+  // Read pots on muxes
+  for(byte c = 0; c < NUM_MUX_CHANNELS; c ++) {
 
     // Set mux channel
-    for(int s = 0; s < NUM_MUX_SIGNAL_PINS; s ++) {
+    for(byte s = 0; s < NUM_MUX_SIGNAL_PINS; s ++) {
       digitalWrite(MUX_SIGNAL_PINS[s], bitRead(c, s));
     }
     delayMicroseconds(5); // TODO tweak
 
     // Read from all muxes
-    for(int m = 0; m < NUM_MUXES; m ++) {
-      int pot = MUX_POTS_BY_CHANNEL[m][c];
+    for(byte m = 0; m < NUM_MUXES; m ++) {
+      byte pot = MUX_POTS_BY_CHANNEL[m][c];
       pot_values[pot] = smoothValue(pot_values[pot], analogRead(MUX_PINS[m]));
     }
   }
@@ -136,30 +144,20 @@ void loop() {
   // Read master pot
   pot_values[40] = smoothValue(pot_values[40], analogRead(MASTER_POT_PIN));
 
-  // Check values
-  for(int i = 0; i < NUM_POTS; i ++) {
-    int new_midi_value = (int)pot_values[i] >> (POT_BITS - 7);
+  // Check pot values
+  for(byte i = 0; i < NUM_POTS; i ++) {
+    
+    byte new_midi_value = int(pot_values[i] + 0.5) >> (POT_BITS - 7);
+    
     if(new_midi_value != pot_midi_values[i]) {
-//        Serial.print(i);
-//        Serial.print(" changed to " );
-//        Serial.println(new_midi_value);
       usbMIDI.sendControlChange(MIDI_CCS[i], new_midi_value, MIDI_CHANNEL);
       pot_midi_values[i] = new_midi_value;
     }
-  }
-
-
-
-//      if(pot == 39) {
-//        Serial.print(rawValue);
-//        Serial.print("\t");
-//        Serial.println((int)pot_values[pot]);
-//      }
-      
+  }   
 
   // Switches
   
-  for(int i = 0; i < NUM_SWITCHES; i ++) {
+  for(byte i = 0; i < NUM_SWITCHES; i ++) {
     switches[i].update();
 
     // Send all pot values
@@ -177,20 +175,12 @@ void loop() {
       }
     }
   }
-  
-//  LED?
-
-//  if(switchDown) {
-//    digitalWrite(LED_BUILTIN, LOW);
-//  } else {
-//    digitalWrite(LED_BUILTIN, HIGH);
-//  }
 
   // Discard incoming MIDI
   while (usbMIDI.read()) {
   }
   
-  delay(1); // ms TODO experiment! Two refs have no delay, tehn's has 4ms
+  delay(2); // ms (~300 fps)
 
   Serial.println(1000000 / (micros() - startTime));
 
