@@ -177,7 +177,7 @@ void readSwitches() {
 
 void loop() {
   
-  unsigned long startTime = micros();
+//  unsigned long startTime = micros();
 
   readPots();
   readSwitches();
@@ -188,6 +188,6 @@ void loop() {
   
   delay(2); // ms (~300 fps)
 
-  Serial.println(1000000 / (micros() - startTime));
+//  Serial.println(1000000 / (micros() - startTime));
 
 }
