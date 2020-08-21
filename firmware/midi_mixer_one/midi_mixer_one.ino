@@ -69,6 +69,7 @@ Bounce switches[NUM_SWITCHES];
 
 
 void setup() {
+  
   Serial.begin(38400);
   
   analogReadResolution(POT_BITS);
@@ -119,12 +120,8 @@ float smoothValue(float oldValue, int newValue) {
   return oldValue + (newValue - oldValue) * snap;
 }
 
-void loop() {
+void readPots() {
   
-  unsigned long startTime = micros();
-
-  // Pots
-
   // Read pots on muxes
   for(byte c = 0; c < NUM_MUX_CHANNELS; c ++) {
 
@@ -132,8 +129,8 @@ void loop() {
     for(byte s = 0; s < NUM_MUX_SIGNAL_PINS; s ++) {
       digitalWrite(MUX_SIGNAL_PINS[s], bitRead(c, s));
     }
-    delayMicroseconds(5); // TODO tweak
-
+    delayMicroseconds(5);
+    
     // Read from all muxes
     for(byte m = 0; m < NUM_MUXES; m ++) {
       byte pot = MUX_POTS_BY_CHANNEL[m][c];
@@ -144,7 +141,7 @@ void loop() {
   // Read master pot
   pot_values[40] = smoothValue(pot_values[40], analogRead(MASTER_POT_PIN));
 
-  // Check pot values
+  // Check values
   for(byte i = 0; i < NUM_POTS; i ++) {
     
     byte new_midi_value = int(pot_values[i] + 0.5) >> (POT_BITS - 7);
@@ -153,9 +150,10 @@ void loop() {
       usbMIDI.sendControlChange(MIDI_CCS[i], new_midi_value, MIDI_CHANNEL);
       pot_midi_values[i] = new_midi_value;
     }
-  }   
+  }
+}
 
-  // Switches
+void readSwitches() {
   
   for(byte i = 0; i < NUM_SWITCHES; i ++) {
     switches[i].update();
@@ -175,6 +173,14 @@ void loop() {
       }
     }
   }
+}
+
+void loop() {
+  
+  unsigned long startTime = micros();
+
+  readPots();
+  readSwitches();
 
   // Discard incoming MIDI
   while (usbMIDI.read()) {
