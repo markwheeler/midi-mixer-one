@@ -57,7 +57,7 @@ const byte MUX_POTS_BY_CHANNEL[][NUM_MUX_CHANNELS] = {
   {24, 28, 29, 27, 31, 26, 30, 25},
   {33, 34, 39, 32, 38, 35, 37, 36},
 };
-#define MASTER_POT_PIN          19
+#define MIX_POT_PIN          19
 const byte SWITCH_PINS[] =      {3, 11, 7, 2, 6, 8, 1, 5, 9, 0, 4, 10};
 
 const int POT_RES = pow(2, POT_BITS);
@@ -138,8 +138,8 @@ void readPots() {
     }
   }
 
-  // Read master pot
-  pot_values[40] = smoothValue(pot_values[40], analogRead(MASTER_POT_PIN));
+  // Read mix pot
+  pot_values[40] = smoothValue(pot_values[40], analogRead(MIX_POT_PIN));
 
   // Check values
   for(byte i = 0; i < NUM_POTS; i ++) {
