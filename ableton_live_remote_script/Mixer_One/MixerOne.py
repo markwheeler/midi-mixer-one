@@ -9,6 +9,9 @@ from _Framework.InputControlElement import MIDI_NOTE_TYPE, MIDI_CC_TYPE
 class MixerOne(ControlSurface):
     __module__ = __name__
     __doc__ = " Mixer One controller script "
+
+    scrub_step = 4
+    scrub_quant = 4
     
     def __init__(self, c_instance):
         ControlSurface.__init__(self, c_instance)
@@ -80,19 +83,18 @@ class MixerOne(ControlSurface):
                 if self.app.view.focused_document_view == "Session":
                     self.song.stop_all_clips()
 
-                # Arrangement/ 
+                # Arrangement/ Prev cue point
                 else:
-                    self.log_message("Time testssssss", self.song.current_song_time)
-                    self.log_message("To do")
+                    self.song.jump_to_prev_cue()
 
             elif sender.name == 5:
                 # Session/ Record into scene
                 if self.app.view.focused_document_view == "Session":
                     self.song.trigger_session_record()
 
-                # Arrangement/ 
+                # Arrangement/ Next cue point
                 else:
-                    self.log_message("To do")
+                    self.song.jump_to_next_cue()
 
             elif sender.name == 6:
                 # Toggle detail view
@@ -120,7 +122,7 @@ class MixerOne(ControlSurface):
 
                 # Arrangement/ Scrub reverse
                 else:
-                    self.song.jump_by(-16)
+                    self.song.current_song_time = round((self.song.current_song_time - self.scrub_step) / self.scrub_quant) * self.scrub_quant
 
             elif sender.name == 10:
                 # Session/ Next scene
@@ -138,4 +140,4 @@ class MixerOne(ControlSurface):
 
                 # Arrangement / Scrub forward
                 else:
-                    self.song.jump_by(16)
+                    self.song.current_song_time = ((self.song.current_song_time + self.scrub_step) // self.scrub_quant) * self.scrub_quant
