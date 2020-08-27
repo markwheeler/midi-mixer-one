@@ -1,7 +1,7 @@
 # MIDI Mixer One
 MIDI Mixer One is a mixer-style MIDI controller built around Teensy.
 
-[Discussion thread on llllllll](https://llllllll.co/)
+[Discussion thread on llllllll](https://llllllll.co/t/midi-mixer-one/35783)
 
 ![Photo of finished controller](https://github.com/markwheeler/midi-mixer-one/blob/main/images/midi-mixer-one-01.jpg)
 
@@ -14,7 +14,7 @@ The [BOM](https://github.com/markwheeler/midi-mixer-one/blob/main/bom.csv) lists
 
 Included are Front Panel Designer files for a simple front and back panel.
 
-Contact me if you're thinking about doing a PCB run, I may have boards.
+Contact me if you're thinking about building one, I may have PCBs.
 
 ## Firmware
 MIDI paramaters are defined at the top for editing the channel, CCs, etc. By default, button 8 is dedicated to sending all CC values to make the receiver match the controller.
