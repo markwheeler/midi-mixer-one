@@ -50,24 +50,22 @@ class MixerOne(ControlSurface):
 
     def _set_track_relative(self, increment):
         all_tracks = []
-        for track in self._song.visible_tracks:
-            all_tracks.append(track)
-        for track in self._song.return_tracks:
-            all_tracks.append(track)
+        all_tracks.extend(self._song.visible_tracks)
+        all_tracks.extend(self._song.return_tracks)
         all_tracks.append(self._song.master_track)
         
         for i, track in enumerate(all_tracks):
             if track == self._song.view.selected_track:
                 select_index = max(0, min(i + increment, len(all_tracks) - 1))
                 self._song.view.selected_track = all_tracks[select_index]
-                return
+                break
 
     def _set_scene_relative(self, increment):
         for i, scene in enumerate(self._song.scenes):
             if scene == self._song.view.selected_scene:
                 select_index = max(0, min(i + increment, len(self._song.scenes) - 1))
                 self._song.view.selected_scene = self._song.scenes[select_index]
-                return
+                break
 
 
     def _up_button_action(self):
