@@ -1,6 +1,6 @@
 Item,Number,Notes
 Teensy LC,1,
-Multiplexer IC 74HCT4051,5,
+Multiplexer IC 74HCT4051 16-DIP,5,
 47uF Aluminum Electrolytic Capacitor,1,Must be under 10mm tall.
 0.1uF Ceramic Capacitors,5,
 "Headers M/M 0.1"" (2.54mm)",2,"For attaching Teensy to board, only need 28 pins total on long edges."
