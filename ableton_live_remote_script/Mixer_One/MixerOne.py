@@ -19,34 +19,34 @@ class MixerOne(ControlSurface):
         with self.component_guard():
             self.__c_instance = c_instance
 
-            self._up_repeat_task = self._make_repeat_task(self._up_button_action)
-            self._down_repeat_task = self._make_repeat_task(self._down_button_action)
-            self._left_repeat_task = self._make_repeat_task(self._left_button_action)
-            self._right_repeat_task = self._make_repeat_task(self._right_button_action)
-            
             self._app = Live.Application.get_application()
             self._song = self._app.get_document()
 
             self._buttons = []
+            self._repeat_tasks = []
             for i in range(12):
                 button = ButtonElement(True, MIDI_NOTE_TYPE, 0, i, name = i)
                 button.add_value_listener(self._button_event, identify_sender = True)
                 self._buttons.append(button)
+                self._repeat_tasks.append(self._make_repeat_task(self._button_action, i))
 
             self.show_message('Mixer One is OK')
 
     def disconnect(self):
-        self._up_repeat_task.kill()
-        self._down_repeat_task.kill()
-        self._left_repeat_task.kill()
-        self._right_repeat_task.kill()
+        ControlSurface.disconnect(self)
+        for task in self._repeat_tasks:
+            task.kill()
         for button in self._buttons:
             button.remove_value_listener(self._button_event)
 
-    def _make_repeat_task(self, func):
-        task = self._tasks.add(Task.sequence(Task.wait(self.key_repeat_delay), Task.loop(Task.wait(self.key_repeat_rate), Task.run(func))))
+    def _make_repeat_task(self, func, arg):
+        task = self._tasks.add(Task.sequence(Task.wait(self.key_repeat_delay), Task.loop(Task.wait(self.key_repeat_rate), Task.run(lambda: func(arg)))))
         task.kill()
         return task
+
+    def _start_repeat(self, id):
+        if not self._repeat_tasks[id].is_running:
+            self._repeat_tasks[id].restart()
 
     def _set_track_relative(self, increment):
         all_tracks = []
@@ -67,130 +67,116 @@ class MixerOne(ControlSurface):
                 self._song.view.selected_scene = self._song.scenes[select_index]
                 break
 
+    def _button_action(self, id):
 
-    def _up_button_action(self):
-        # Session/ Previous scene
-        if self._app.view.focused_document_view == "Session":
-            self._set_scene_relative(-1)
+        if id == 0:
+            # Play
+            self._song.start_playing()
 
-        # Arrangement/ Previous track
-        else:
-            self._set_track_relative(-1)
+        elif id == 1:
+            # Stop
+            self._song.stop_playing()
 
-    def _down_button_action(self):
-        # Session/ Next scene
-        if self._app.view.focused_document_view == "Session":
-            self._set_scene_relative(1)
+        elif id == 2:
+            # Record
+            self._song.record_mode = True
 
-        # Arrangement/ Next track
-        else:
-            self._set_track_relative(1)
+        elif id == 3:
+            # Session/ Launch scene
+            if self._app.view.focused_document_view == "Session":
+                self._song.view.selected_scene.fire()
 
-    def _left_button_action(self):
-        # Session/ Previous track
-        if self._app.view.focused_document_view == "Session":
-            self._set_track_relative(-1)
+            # Arrangement/ Continue playing
+            else:
+                self._song.continue_playing()
 
-        # Arrangement/ Scrub reverse
-        else:
-            self._song.current_song_time = max(0, round((self._song.current_song_time - self.scrub_step) / self.scrub_quant) * self.scrub_quant)
+        elif id == 4:
+            # Session/ Stop all clips
+            if self._app.view.focused_document_view == "Session":
+                self._song.stop_all_clips()
 
-    def _right_button_action(self):
-        # Session/ Next track
-        if self._app.view.focused_document_view == "Session":
-            self._set_track_relative(1)
+            # Arrangement/ Prev cue point
+            else:
+                self._song.jump_to_prev_cue()
+                self._start_repeat(id)
 
-        # Arrangement / Scrub forward
-        else:
-            self._song.current_song_time = ((self._song.current_song_time + self.scrub_step) // self.scrub_quant) * self.scrub_quant
+        elif id == 5:
+            # Session/ Record into scene
+            if self._app.view.focused_document_view == "Session":
+                self._song.trigger_session_record()
+
+            # Arrangement/ Next cue point
+            else:
+                self._song.jump_to_next_cue()
+                self._start_repeat(id)
+
+
+        elif id == 6:
+            # Toggle detail view
+            if self._app.view.is_view_visible("Detail/Clip"):
+                self._app.view.show_view("Detail/DeviceChain")
+            else:
+                self._app.view.show_view("Detail/Clip")
+
+        elif id == 7:
+            # Up
+
+            # Session/ Previous scene
+            if self._app.view.focused_document_view == "Session":
+                self._set_scene_relative(-1)
+
+            # Arrangement/ Previous track
+            else:
+                self._set_track_relative(-1)
+
+            self._start_repeat(id)
+
+        # elif id == 8:
+            # Reserved
+
+        elif id == 9:
+            # Left
+
+            # Session/ Previous track
+            if self._app.view.focused_document_view == "Session":
+                self._set_track_relative(-1)
+
+            # Arrangement/ Scrub reverse
+            else:
+                self._song.current_song_time = max(0, round((self._song.current_song_time - self.scrub_step) / self.scrub_quant) * self.scrub_quant)
+
+            self._start_repeat(id)
+        
+        elif id == 10:
+            # Down
+
+            # Session/ Next scene
+            if self._app.view.focused_document_view == "Session":
+                self._set_scene_relative(1)
+
+            # Arrangement/ Next track
+            else:
+                self._set_track_relative(1)
+
+            self._start_repeat(id)
+
+        elif id == 11:
+            # Right
+
+            # Session/ Next track
+            if self._app.view.focused_document_view == "Session":
+                self._set_track_relative(1)
+
+            # Arrangement / Scrub forward
+            else:
+                self._song.current_song_time = ((self._song.current_song_time + self.scrub_step) // self.scrub_quant) * self.scrub_quant
+
+            self._start_repeat(id)
 
 
     def _button_event(self, value, sender):
-
-            if sender.name == 0:
-                if value == ON_VALUE:
-                    # Play
-                    self._song.start_playing()
-
-            elif sender.name == 1:
-                if value == ON_VALUE:
-                    # Stop
-                    self._song.stop_playing()
-
-            elif sender.name == 2:
-                if value == ON_VALUE:
-                    # Record
-                    self._song.record_mode = True
-
-            elif sender.name == 3:
-                if value == ON_VALUE:
-                    # Session/ Launch scene
-                    if self._app.view.focused_document_view == "Session":
-                        self._song.view.selected_scene.fire()
-
-                    # Arrangement/ Continue playing
-                    else:
-                        self._song.continue_playing()
-
-            elif sender.name == 4:
-                if value == ON_VALUE:
-                    # Session/ Stop all clips
-                    if self._app.view.focused_document_view == "Session":
-                        self._song.stop_all_clips()
-
-                    # Arrangement/ Prev cue point
-                    else:
-                        self._song.jump_to_prev_cue()
-
-            elif sender.name == 5:
-                if value == ON_VALUE:
-                    # Session/ Record into scene
-                    if self._app.view.focused_document_view == "Session":
-                        self._song.trigger_session_record()
-
-                    # Arrangement/ Next cue point
-                    else:
-                        self._song.jump_to_next_cue()
-
-            elif sender.name == 6:
-                if value == ON_VALUE:
-                    # Toggle detail view
-                    if self._app.view.is_view_visible("Detail/Clip"):
-                        self._app.view.show_view("Detail/DeviceChain")
-                    else:
-                        self._app.view.show_view("Detail/Clip")
-
-            elif sender.name == 7:
-                # Up
-                if value == ON_VALUE:
-                    self._up_button_action()
-                    self._up_repeat_task.restart()
-                else:
-                    self._up_repeat_task.kill()
-
-            # elif sender.name == 8:
-                # Reserved
-
-            elif sender.name == 9:
-                # Left
-                if value == ON_VALUE:
-                    self._left_button_action()
-                    self._left_repeat_task.restart()
-                else:
-                    self._left_repeat_task.kill()
-
-            elif sender.name == 10:
-                # Down
-                if value == ON_VALUE:
-                    self._down_button_action()
-                    self._down_repeat_task.restart()
-                else:
-                    self._down_repeat_task.kill()
-
-            elif sender.name == 11:
-                # Right
-                if value == ON_VALUE:
-                    self._right_button_action()
-                    self._right_repeat_task.restart()
-                else:
-                    self._right_repeat_task.kill()
+        if value == ON_VALUE:
+            self._button_action(sender.name)
+        else:
+            if not self._repeat_tasks[sender.name].is_killed:
+                self._repeat_tasks[sender.name].kill()
