@@ -33,11 +33,11 @@ class MixerOne(ControlSurface):
             self.show_message('Mixer One is OK')
 
     def disconnect(self):
+        ControlSurface.disconnect(self)
         for task in self._repeat_tasks:
             task.kill()
         for button in self._buttons:
             button.remove_value_listener(self._button_event)
-        # ControlSurface.disconnect(self)
 
     def _make_repeat_task(self, func, arg):
         task = self._tasks.add(Task.sequence(Task.wait(self.key_repeat_delay), Task.loop(Task.wait(self.key_repeat_rate), Task.run(lambda: func(arg)))))
