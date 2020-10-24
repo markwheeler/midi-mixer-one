@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>MIDI Mixer One Configurator</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="robots" content="all">
+    <meta name="robots" content="noindex, follow">
+
+    <!-- <link rel="stylesheet" href="css/styles.css" type="text/css" media="screen"> -->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+
+</head>
+
+<body>
+
+    <h1>MIDI Mixer One</h1>
+
+    <p>
+        Select the MIDI Mixer One for input and output.
+    </p>
+    <p>
+        <label for="selectIn">Input</label>
+        <select id="selectIn"></select>
+        <br>
+        <label for="selectIn">Output</label>
+        <select id="selectOut"></select>
+    </p>
+
+    <p>
+        <button onclick="requestSysex()">Request</button>
+    </p>
+    <p>
+        <button onclick="sendSysex()">Send</button>
+    </p>
+
+    <script src="js/midi.js"></script>	
+</body>
+
+</html>
