@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>MIDI Mixer One Configurator</title>
+    <title>MIDI Mixer One Config</title>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,7 +10,7 @@
     <meta name="robots" content="all">
     <meta name="robots" content="noindex, follow">
 
-    <!-- <link rel="stylesheet" href="css/styles.css" type="text/css" media="screen"> -->
+    <link rel="stylesheet" href="css/styles.css" type="text/css" media="screen">
 
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
 
@@ -18,26 +18,92 @@
 
 <body>
 
-    <h1>MIDI Mixer One</h1>
+    <div id="content">
+        <div class="section">
+            <h1>MIDI Mixer One</h1>
+            <p>
+                Intro text and links.
+            </p>
+        </div>
 
-    <p>
-        Select the MIDI Mixer One for input and output.
-    </p>
-    <p>
-        <label for="selectIn">Input</label>
-        <select id="selectIn"></select>
-        <br>
-        <label for="selectIn">Output</label>
-        <select id="selectOut"></select>
-    </p>
+        <div id="setup" class="hidden">
+            <div class="section">
+                <div class="item">
+                    <label for="selectIn" class="itemName">MIDI Input</label>
+                    <select id="selectIn"></select>
+                </div>
+                <div class="item">
+                    <label for="selectOut" class="itemName">MIDI Output</label>
+                    <select id="selectOut"></select>
+                </div>
+            </div>
 
-    <p>
-        <button onclick="requestSysex()">Request</button>
-    </p>
-    <p>
-        <button onclick="sendSysex()">Send</button>
-    </p>
+            <div class="section">
+                <button id="requestButton" type="button" onclick="requestSysex()">Request</button>
+                <button id="sendButton" disabled=true type="button" onclick="sendSysex()">Send</button>
+            </div>
+        </div>
 
+        <div id="message" class="info">
+            <p id="messageContent">
+            </p>
+        </div>
+        
+        <div id="settings" class="hidden">
+            <div class="section">
+                <div class="item">
+                    <label class="itemName">Global</label>
+                    <label for="keypadChan">Channel</label>
+                    <select id="keypadChan" class="narrow">
+                        <option>None</option>
+                        <option>0</option>
+                    </select>
+                </div>
+            </div>
+            <div class="section">
+                <div class="item">
+                    <label class="itemName">Knob 1</label>
+                    <label for="knob1CC">Channel</label>
+                    <select id="knob1Chan" class="narrow">
+                        <option>0</option>
+                    </select>
+                    <br>
+                    <label for="knob1CC" class="secondary">Control</label>
+                    <select id="knob1CC" class="narrow">
+                        <option>127</option>
+                    </select>
+                </div>
+            </div>
+            <div class="section">
+                <div class="item">
+                    <label class="itemName">Keypad</label>
+                    <label for="keypadChan">Channel</label>
+                    <select id="keypadChan" class="narrow">
+                        <option>0</option>
+                    </select>
+                </div>
+                <div class="item">
+                    <label class="itemName">Send All CCs</label>
+                    <label for="keySendAll">Key</label>
+                    <select id="keySendAll" class="narrow">
+                        <option>None</option>
+                        <option>1</option>
+                    </select>
+                </div>
+            </div>
+            <div class="section">
+                <div class="item">
+                    <label class="itemName">Key 1</label>
+                    <label for="key1Note">Note</label>
+                    <select id="key1Note" class="narrow">
+                        <option>0</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
     <script src="js/midi.js"></script>	
 </body>
 

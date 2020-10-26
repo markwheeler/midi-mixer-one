@@ -6,7 +6,7 @@ let midiOut = [];
 // Sysex consts
 const SYSEX_START = 0xF0;
 const SYSEX_END = 0xF7;
-const MANUFACTURER_ID = [0x00, 0x00, 0x7D];
+const MANUFACTURER_ID = [0x7D, 0x00, 0x00];
 const MODEL_ID = 0x00;
 const PROTOCOL_VERSION = 0x00;
 const REQUEST = 0x00;
@@ -16,25 +16,39 @@ const SYSEX_MSG_START = [ SYSEX_START, ...MANUFACTURER_ID, MODEL_ID, PROTOCOL_VE
 
 connect();
 
+function message(message, fatal = false) {
+    document.getElementById("messageContent").innerHTML = message;
+    if( fatal ) {
+        document.getElementById("setup").className = "hidden";
+        document.getElementById("message").className = "message fatal";
+    }
+}
+
+function showSettings() {
+    document.getElementById("sendButton").disabled = false;
+    document.getElementById("settings").className = "";
+}
+
+function hideSettings() {
+    document.getElementById("sendButton").disabled = true;
+    document.getElementById("settings").className = "hidden";
+}
+
 function connect() {
     if(navigator.requestMIDIAccess) {
 
         navigator.requestMIDIAccess({ sysex: true })
             .then(
                 (midi) => midiReady(midi),
-                (err) => message('Error starting WebMIDI. Please make sure you are using a supported browser and allow access to MIDI devices when prompted.', err));
+                (err) => message('<strong>Could not start WebMIDI</strong><br>Please allow access to MIDI devices when prompted.', err));
 
     } else {
-        message("Could not start WebMIDI. Please make sure you are using a supported browser.")
+        message('<strong>Could not start WebMIDI</strong><br>Please use a <a href="https://caniuse.com/midi">supported browser</a>.')
     }
 }
 
-function message(message) {
-    // TODO replace form instead of alert
-    window.alert(message)
-}
-
 function midiReady(midi) {
+    document.getElementById("setup").className = "";
     midi.addEventListener('statechange', (event) => initDevices(event.target));
     initDevices(midi);
 }
@@ -89,6 +103,9 @@ function midiMessageReceived(event) {
                             console.log(event.data[i]); // TODO
                         }
 
+                        message("Updated from device.")
+                        showSettings();
+
                     } else {
                         message("Incompatible firmware version.")
                     }
@@ -117,4 +134,5 @@ function sendSysex() {
         0x04,
         SYSEX_END ];
     device.send(msg);
+    message("Sent to device.")
 }
