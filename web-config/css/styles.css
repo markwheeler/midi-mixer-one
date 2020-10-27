@@ -81,7 +81,7 @@ label.itemName {
 
 div#content {
 	min-width: 286px;
-	max-width: 560px;
+	max-width: 520px;
     margin: 32px auto;
     padding: 0 16px 0 16px;
     /* background: #f2f2f2; */
@@ -100,14 +100,28 @@ div#message {
 	margin: 24px 0 0 0;
 	padding: 0.65em 16px 0.7em 16px;
 	border-radius: 4px;
-}
-
-div.info {
 	background: #e8fcff;
 	color: #114a54;
 }
 
+div#message a {
+	color: #114a54;
+}
+
+div#message a:hover, div#message a:active {
+	color: #11606e;
+}
+
+
 div.fatal {
-	background: #ffe3ea;
-	color: #7c001f;
+	background: #ffe3ea !important;
+	color: #8e0024 !important;
+}
+
+div.fatal a {
+	color: #8e0024 !important;
+}
+
+div.fatal a:hover, div.fatal a:active {
+	color: #a20029 !important;
 }

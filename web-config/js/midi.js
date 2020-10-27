@@ -1,4 +1,4 @@
-// Uses snippets from https://webmidi-examples.glitch.me/
+// Uses code from https://webmidi-examples.glitch.me/
 
 let midiIn = [];
 let midiOut = [];
@@ -14,45 +14,28 @@ const STORE = 0x01;
 
 const SYSEX_MSG_START = [ SYSEX_START, ...MANUFACTURER_ID, MODEL_ID, PROTOCOL_VERSION ];
 
-connect();
+midiConnect();
 
-function message(message, fatal = false) {
-    document.getElementById("messageContent").innerHTML = message;
-    if( fatal ) {
-        document.getElementById("setup").className = "hidden";
-        document.getElementById("message").className = "fatal";
-    } else {
-        document.getElementById("message").className = "info";
-    }
-}
-
-function showSettings() {
-    document.getElementById("sendButton").disabled = false;
-    document.getElementById("settings").className = "";
-}
-
-function hideSettings() {
-    document.getElementById("sendButton").disabled = true;
-    document.getElementById("settings").className = "hidden";
-}
-
-function connect() {
+function midiConnect() {
     if(navigator.requestMIDIAccess) {
 
         navigator.requestMIDIAccess({ sysex: true })
             .then(
                 (midi) => midiReady(midi),
-                (err) => message('<strong>Could not start WebMIDI</strong><br>Please allow access to MIDI devices when prompted.', err));
+                (err) => {
+                    midiAccessBlockedCallback();
+                    console.log("Could not start WebMIDI: " + err);
+                });
 
     } else {
-        message('<strong>Could not start WebMIDI</strong><br>Please use a <a href="https://caniuse.com/midi">supported browser</a>.')
+        midiFailedToStartCallback()
     }
 }
 
 function midiReady(midi) {
-    document.getElementById("setup").className = "";
     midi.addEventListener('statechange', (event) => initDevices(event.target));
     initDevices(midi);
+    midiReadyCallback();
 }
 
 function initDevices(midi) {
@@ -105,19 +88,15 @@ function midiMessageReceived(event) {
                             console.log(event.data[i]); // TODO
                         }
 
-                        message("Updated from device.")
-                        showSettings();
+                        sysexReceivedCallback();
 
                     } else {
-                        message("Incompatible firmware version.")
+                        incompatibleFirmwareCallback(PROTOCOL_VERSION);
                     }
             } else {
-                message("Incompatible device selected.")
+                incompatibleDeviceCallback();
             }
     }
-    
-    // const velocity = (event.data.length > 2) ? event.data[2] : 1;
-
 }
 
 function requestSysex() {
@@ -129,7 +108,7 @@ function requestSysex() {
 function sendSysex() {
     const device = midiOut[selectOut.selectedIndex];
     const msg = [ ...SYSEX_MSG_START, STORE,
-        0x00,
+        0x00, // Test data
         0x01,
         0x02,
         0x03,
