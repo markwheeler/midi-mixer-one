@@ -19,7 +19,7 @@
 <body>
 
     <div id="content">
-        <div class="section">
+        <div id="intro" class="section">
             <h1>MIDI Mixer One</h1>
             <p>
                 Intro text and links.
@@ -29,22 +29,19 @@
         <div id="setup" class="hidden">
             <div class="section">
                 <div class="item">
-                    <label for="selectIn" class="itemName">MIDI Input</label>
-                    <select id="selectIn"></select>
+                    <label for="selectIn" class="itemName">MIDI Input</label><select id="selectIn"></select>
                 </div>
                 <div class="item">
-                    <label for="selectOut" class="itemName">MIDI Output</label>
-                    <select id="selectOut"></select>
+                    <label for="selectOut" class="itemName">MIDI Output</label><select id="selectOut"></select>
                 </div>
             </div>
 
             <div class="section">
-                <button id="requestButton" type="button" onclick="requestSysex()">Request</button>
-                <button id="sendButton" disabled=true type="button" onclick="sendSysex()">Send</button>
+                <button id="requestButton" type="button" onclick="requestSysex()">Request</button><button id="sendButton" disabled=true type="button" onclick="sendSysex()">Send</button>
             </div>
         </div>
 
-        <div id="message" class="info">
+        <div id="message" class="info hidden">
             <p id="messageContent">
             </p>
         </div>
@@ -52,52 +49,27 @@
         <div id="settings" class="hidden">
             <div class="section">
                 <div class="item">
-                    <label class="itemName">Global</label>
-                    <label for="keypadChan">Channel</label>
-                    <select id="keypadChan" class="narrow">
-                        <option>None</option>
-                        <option>0</option>
-                    </select>
+                    <label class="itemName">Global</label><label for="keypadChan">Channel</label><select id="keypadChan" class="narrow"><option>None</option><option>0</option></select>
                 </div>
             </div>
             <div class="section">
                 <div class="item">
-                    <label class="itemName">Knob 1</label>
-                    <label for="knob1CC">Channel</label>
-                    <select id="knob1Chan" class="narrow">
-                        <option>0</option>
-                    </select>
+                    <label class="itemName">Knob 1</label><label for="knob1CC">Channel</label><select id="knob1Chan" class="narrow"><option>0</option></select>
                     <br>
-                    <label for="knob1CC" class="secondary">Control</label>
-                    <select id="knob1CC" class="narrow">
-                        <option>127</option>
-                    </select>
+                    <label for="knob1CC" class="secondary">Control</label><select id="knob1CC" class="narrow"><option>127</option></select>
                 </div>
             </div>
             <div class="section">
                 <div class="item">
-                    <label class="itemName">Keypad</label>
-                    <label for="keypadChan">Channel</label>
-                    <select id="keypadChan" class="narrow">
-                        <option>0</option>
-                    </select>
+                    <label class="itemName">Keypad</label><label for="keypadChan">Channel</label><select id="keypadChan" class="narrow"><option>0</option></select>
                 </div>
                 <div class="item">
-                    <label class="itemName">Send All CCs</label>
-                    <label for="keySendAll">Key</label>
-                    <select id="keySendAll" class="narrow">
-                        <option>None</option>
-                        <option>1</option>
-                    </select>
+                    <label class="itemName">Send All CCs</label><label for="keySendAll">Key</label><select id="keySendAll" class="narrow"><option>None</option><option>1</option></select>
                 </div>
             </div>
             <div class="section">
                 <div class="item">
-                    <label class="itemName">Key 1</label>
-                    <label for="key1Note">Note</label>
-                    <select id="key1Note" class="narrow">
-                        <option>0</option>
-                    </select>
+                    <label class="itemName">Key 1</label><label for="key1Note">Note</label><select id="key1Note" class="narrow"><option>0</option></select>
                 </div>
             </div>
         </div>

@@ -20,7 +20,9 @@ function message(message, fatal = false) {
     document.getElementById("messageContent").innerHTML = message;
     if( fatal ) {
         document.getElementById("setup").className = "hidden";
-        document.getElementById("message").className = "message fatal";
+        document.getElementById("message").className = "fatal";
+    } else {
+        document.getElementById("message").className = "info";
     }
 }
 
