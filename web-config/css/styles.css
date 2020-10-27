@@ -48,10 +48,6 @@ select, button {
 	margin: 0;
 }
 
-select {
-	/* float: right; */
-}
-
 button:last-child {
 	margin-left: 16px;
 }
