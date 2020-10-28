@@ -12,8 +12,6 @@
 
     <link rel="stylesheet" href="css/styles.css" type="text/css" media="screen">
 
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
-
 </head>
 
 <body>
@@ -22,7 +20,7 @@
         <div id="intro" class="section">
             <h1>MIDI Mixer One</h1>
             <p>
-                Intro text and links.
+                Intro text and <a href="https://github.com/markwheeler/midi-mixer-one/wiki">links</a>.
             </p>
         </div>
 
@@ -49,7 +47,7 @@
         <div id="settings" class="hidden">
             <div class="section">
                 <div class="item">
-                    <label class="itemName">Global</label><label for="keypadChan">Channel</label><select id="keypadChan" class="narrow"><option>None</option><option>0</option></select>
+                    <label class="itemName">Global</label><label for="keypadChan" class="secondary">Channel</label><select id="keypadChan" class="narrow"><option>None</option><option>0</option></select>
                 </div>
             </div>
             <div class="section">
@@ -71,6 +69,9 @@
                 <div class="item">
                     <label class="itemName">Key 1</label><label for="key1Note">Note</label><select id="key1Note" class="narrow"><option>0</option></select>
                 </div>
+            </div>
+            <div class="section">
+                <button id="defaultsButton" type="button" onclick="setDefaults()">Defaults</button>
             </div>
         </div>
         

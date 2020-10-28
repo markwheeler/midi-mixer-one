@@ -48,8 +48,8 @@ select, button {
 	margin: 0;
 }
 
-button:last-child {
-	margin-left: 16px;
+button:first-child {
+	margin-right: 16px;
 }
 
 select.narrow {
