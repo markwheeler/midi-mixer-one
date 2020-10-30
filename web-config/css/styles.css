@@ -88,6 +88,10 @@ div.section {
 	/* background: #f2ffff; */
 }
 
+div.item {
+	margin: 0 0 10px 0;
+}
+
 div#intro {
 	font-size: 18px;
 }

@@ -2,15 +2,15 @@ class Device {
 
     constructor(modelId) {
 
-        var devices = [
+        const devices = [
             {
                 name: "MIDI Mixer One",
                 modelId: 0,
                 protocolVersion: 0,
-                numPots: 41,
+                numKnobs: 41,
                 numKeys: 12,
 
-                defaultPotChannels: [
+                defaultKnobChannels: [
                     1, 1, 1, 1, 1,
                     1, 1, 1, 1, 1,
                     1, 1, 1, 1, 1,
@@ -20,7 +20,7 @@ class Device {
                     1, 1, 1, 1, 1,
                     1, 1, 1, 1, 1,
                     1],
-                defaultPotCCs: [
+                defaultKnobCCs: [
                     2, 3, 4, 5, 6,
                     7, 8, 9, 10, 11,
                     12, 13, 14, 15, 16,
@@ -34,14 +34,25 @@ class Device {
                 defaultKeyNotes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
                 defaultSendAllKey: 0,
                 
-                potChannels: this.defaultPotChannels,
-                potCCs: this.defaultPotCCs,
+                knobChannels: this.defaultKnobChannels,
+                knobCCs: this.defaultKnobCCs,
                 keyChannel: this.defaultKeyChannel,
                 keyNotes: this.defaultKeyNotes,
                 sendAllKey: this.defaultSendAllKey
             }
         ]
 
-        return devices[modelId];
+        for(let k in devices[modelId]) {
+            this[k] = devices[modelId][k];
+        }
     }
+
+    setDefaults() {
+        this.knobChannels = this.defaultKnobChannels;
+        this.knobCCs = this.defaultknobCCs;
+        this.keyChannel = this.defaultkeyChannel;
+        this.keyNotes = this.defaultkeyNotes;
+        this.sendAllKey = this.defaultsendAllKey;
+    }
+
 }

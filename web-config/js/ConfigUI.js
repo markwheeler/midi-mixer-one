@@ -36,13 +36,84 @@ class ConfigUI {
     }
 
     generateSettings() {
-        // TODO
+
+        const midiChannelRange = [];
+        const midiRange = [];
+        const keyRange = ["None"];
+        
+        for( let i = 1; i < 17; i ++ ) { midiChannelRange[i] = i; }
+        for( let i = 0; i < 128; i ++ ) { midiRange[i] = i; }
+        for( let i = 1; i <= this.device.numKeys; i ++ ) { keyRange.push(i); }
+
+        let settings = document.getElementById("deviceSettings");
 
         // Global
+        let globalSection = this._generateSection();
+        globalSection.appendChild(this._generateItem("Global", ["globalChannel"], ["Channel"], [[].concat("None", midiChannelRange)]));
+        settings.appendChild(globalSection);
 
-        // Knobs
+        // Keypad
+        let keypadSection = this._generateSection();
+        keypadSection.appendChild(this._generateItem("Keypad", ["keypadChannel"], ["Channel"], [midiChannelRange]));
+        keypadSection.appendChild(this._generateItem("Send All CCs", ["sendAllKey"], ["Key"], [keyRange]));
+        settings.appendChild(keypadSection);
 
         // Keys
+        let keysSection = this._generateSection();
+        for( let i = 0; i < this.device.numKeys; i ++ ) {
+            keysSection.appendChild(this._generateItem("Key " + (i + 1), ["key" + (i + 1)], ["Note"], [midiRange]));
+        }
+        settings.appendChild(keysSection);
+
+        // Knobs
+        let knobsSection = this._generateSection();
+        for( let i = 0; i < this.device.numKnobs; i ++ ) {
+            knobsSection.appendChild(this._generateItem("Knob " + (i + 1), ["knobChannel" + (i + 1), "knobCC" + (i + 1)], ["Channel", "Control"], [midiChannelRange, midiRange]));
+        }
+        settings.appendChild(knobsSection);
+
+    }
+
+    _generateSection() {
+        let sectionElement = document.createElement("div");
+        sectionElement.className = "section";
+        return sectionElement
+    }
+
+    _generateItem(name, ids, properties, options) {
+
+        let itemElement = document.createElement("div");
+        itemElement.className = "item";
+
+        let nameElement = document.createElement("label");
+        nameElement.className = "itemName";
+        nameElement.innerHTML = name;
+        itemElement.appendChild(nameElement);
+
+        for(let i = 0; i < properties.length; i ++) {
+
+            let propertyElement = document.createElement("label");
+            propertyElement.setAttribute("for", ids[i]);
+            propertyElement.innerHTML = properties[i];
+            if( i > 0 ) {
+                propertyElement.className = "secondary";
+                itemElement.appendChild(document.createElement("br"));
+            }
+            itemElement.appendChild(propertyElement);
+
+            let selectElement = document.createElement("select");
+            selectElement.id = ids[i];
+            selectElement.className = "narrow";
+
+            options[i].forEach(option => {
+                let optionElement = document.createElement("option");
+                optionElement.innerHTML = option;
+                selectElement.appendChild(optionElement);
+            });
+
+            itemElement.appendChild(selectElement);
+        }
+        return itemElement;
     }
 
     updateSettings() {
@@ -71,16 +142,17 @@ class ConfigUI {
     // Button events
 
     requestSysexButton() {
-        configUI._midiComms.requestSysex(selectOut.selectedIndex, this.device.modelId, this.device.protocolVersion);
+        configUI._midiComms.requestSysex(document.getElementById("selectOut").selectedIndex, this.device.modelId, this.device.protocolVersion);
     }
 
     sendSysexButton() {
-        configUI._midiComms.sendSysex(selectOut.selectedIndex, this.device.modelId, this.device.protocolVersion);
+        configUI._midiComms.sendSysex(document.getElementById("selectOut").selectedIndex, this.device.modelId, this.device.protocolVersion);
     }
 
     setDefaultsButton() {
-        // TODO
-        console.log("TODO: Set defaults.")
+        // TODO test
+        configUI.device.setDefaults();
+        configUI.updateSettings();
     }
 
 
@@ -99,8 +171,8 @@ class ConfigUI {
     }
 
     devicesUpdatedCallback(devicesIn, devicesOut) {
-        selectIn.innerHTML = devicesIn.map(device => `<option>${device.name}</option>`).join('');
-        selectOut.innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('');
+        document.getElementById("selectIn").innerHTML = devicesIn.map(device => `<option>${device.name}</option>`).join('');
+        document.getElementById("selectOut").innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('');
     }
 
     sysexReceivedCallback(modelId, protocolVersion, data) {
