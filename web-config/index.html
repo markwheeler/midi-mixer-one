@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>MIDI Mixer One Config</title>
+    <title>MIDI Config</title>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -18,9 +18,15 @@
 
     <div id="content">
         <div id="intro" class="section">
-            <h1>MIDI Mixer One</h1>
+            <h1>MIDI Config</h1>
             <p>
-                Intro text and <a href="https://github.com/markwheeler/midi-mixer-one/wiki">links</a>.
+                Use this page to configure a connected MIDI Mixer One.
+            </p>
+            <p>
+                Start by selecting the MIDI input and output then <strong>request</strong> the current configuration. Make any changes and <strong>send</strong> them back to the hardware.
+            </p>
+            <p>
+                <a href="https://github.com/markwheeler/midi-mixer-one/wiki">More information</a>
             </p>
         </div>
 
@@ -35,7 +41,7 @@
             </div>
 
             <div class="section">
-                <button id="requestButton" type="button" onclick="requestSysex()">Request</button><button id="sendButton" disabled=true type="button" onclick="sendSysex()">Send</button>
+                <button id="requestButton" type="button" onclick="configUI.requestSysexButton()">Request</button><button id="sendButton" disabled=true type="button" onclick="configUI.sendSysexButton()">Send</button>
             </div>
         </div>
 
@@ -47,7 +53,7 @@
         <div id="settings" class="hidden">
             <div class="section">
                 <div class="item">
-                    <label class="itemName">Global</label><label for="keypadChan" class="secondary">Channel</label><select id="keypadChan" class="narrow"><option>None</option><option>0</option></select>
+                    <label class="itemName">Global</label><label for="keypadChan">Channel</label><select id="keypadChan" class="narrow"><option>None</option><option>0</option></select>
                 </div>
             </div>
             <div class="section">
@@ -71,14 +77,15 @@
                 </div>
             </div>
             <div class="section">
-                <button id="defaultsButton" type="button" onclick="setDefaults()">Defaults</button>
+                <button id="defaultsButton" type="button" onclick="configUI.setDefaultsButton()">Defaults</button>
             </div>
         </div>
         
     </div>
     
-    <script src="js/ui.js"></script>
-    <script src="js/midi.js"></script>
+    <script src="js/Device.js"></script>
+    <script src="js/MidiComms.js"></script>
+    <script src="js/ConfigUI.js"></script>
 </body>
 
 </html>
