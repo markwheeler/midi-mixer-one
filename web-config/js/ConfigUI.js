@@ -1,3 +1,5 @@
+const MODEL_ID = 0;
+
 class ConfigUI {
 
     constructor() {
@@ -7,11 +9,11 @@ class ConfigUI {
         this._midiComms.accessBlockedCallback = this.midiAccessBlockedCallback;
         this._midiComms.failedToStartCallback = this.midiFailedToStartCallback;
         this._midiComms.devicesUpdatedCallback = this.devicesUpdatedCallback;
-        this._midiComms.sysexReceivedCallback = this.sysexReceivedCallback;
-        this._midiComms.sysexSentCallback = this.sysexSentCallback;
+        this._midiComms.configReceivedCallback = this.configReceivedCallback;
+        this._midiComms.configSentCallback = this.configSentCallback;
         this._midiComms.connect();
         
-        this.device = new Device(0); // Could be dynamic in future to support multiple models
+        this.device = new Device(MODEL_ID);
         this.generateSettings();
     }
 
@@ -141,12 +143,12 @@ class ConfigUI {
 
     // Button events
 
-    requestSysexButton() {
-        configUI._midiComms.requestSysex(document.getElementById("selectOut").selectedIndex, this.device.modelId, this.device.protocolVersion);
+    requestConfigButton() {
+        configUI._midiComms.requestConfig(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion);
     }
 
-    sendSysexButton() {
-        configUI._midiComms.sendSysex(document.getElementById("selectOut").selectedIndex, this.device.modelId, this.device.protocolVersion);
+    sendConfigButton() {
+        configUI._midiComms.sendConfig(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion);
     }
 
     setDefaultsButton() {
@@ -175,16 +177,16 @@ class ConfigUI {
         document.getElementById("selectOut").innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('');
     }
 
-    sysexReceivedCallback(modelId, protocolVersion, data) {
+    configReceivedCallback(modelId, protocolVersion, data) {
 
         console.log("Received data", modelId, protocolVersion, data);
 
         // Check modelId
-        if(modelId == configUI.device.modelId) {
+        if(modelId == MODEL_ID) {
 
             // Check protocolVersion
             if(protocolVersion == configUI.device.protocolVersion) {
-                configUI.showMessage("Updated from " + configUI.device.name + ".");
+                configUI.showMessage("Updated from " + configUI.device.name + ".<br>Firmware version X");
                 configUI.updateSettings();
                 configUI.showSettings();
 
@@ -197,7 +199,7 @@ class ConfigUI {
         }
     }
 
-    sysexSentCallback() {
+    configSentCallback() {
         configUI.showMessage("Sent to device.")
     }
 

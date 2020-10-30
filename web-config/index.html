@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>MIDI Config</title>
+    <title>MIDI Mixer One Config</title>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -18,7 +18,7 @@
 
     <div id="content">
         <div id="intro" class="section">
-            <h1>MIDI Config</h1>
+            <h1>MIDI Mixer One</h1>
             <p>
                 Use this page to configure a connected MIDI Mixer One.
             </p>
@@ -41,7 +41,7 @@
             </div>
 
             <div class="section">
-                <button id="requestButton" type="button" onclick="configUI.requestSysexButton()">Request</button><button id="sendButton" disabled=true type="button" onclick="configUI.sendSysexButton()">Send</button>
+                <button id="requestButton" type="button" onclick="configUI.requestConfigButton()">Request</button><button id="sendButton" disabled=true type="button" onclick="configUI.sendConfigButton()">Send</button>
             </div>
         </div>
 
@@ -52,31 +52,6 @@
         
         <div id="settings" class="hidden">
             <div id="deviceSettings"></div>
-            <!-- <div class="section">
-                <div class="item">
-                    <label class="itemName">Global</label><label for="keypadChan">Channel</label><select id="keypadChan" class="narrow"><option>None</option><option>0</option></select>
-                </div>
-            </div>
-            <div class="section">
-                <div class="item">
-                    <label class="itemName">Knob 1</label><label for="knob1CC">Channel</label><select id="knob1Chan" class="narrow"><option>0</option></select>
-                    <br>
-                    <label for="knob1CC" class="secondary">Control</label><select id="knob1CC" class="narrow"><option>127</option></select>
-                </div>
-            </div>
-            <div class="section">
-                <div class="item">
-                    <label class="itemName">Keypad</label><label for="keypadChan">Channel</label><select id="keypadChan" class="narrow"><option>0</option></select>
-                </div>
-                <div class="item">
-                    <label class="itemName">Send All CCs</label><label for="keySendAll">Key</label><select id="keySendAll" class="narrow"><option>None</option><option>1</option></select>
-                </div>
-            </div>
-            <div class="section">
-                <div class="item">
-                    <label class="itemName">Key 1</label><label for="key1Note">Note</label><select id="key1Note" class="narrow"><option>0</option></select>
-                </div>
-            </div> -->
             <div class="section">
                 <button id="defaultsButton" type="button" onclick="configUI.setDefaultsButton()">Defaults</button>
             </div>

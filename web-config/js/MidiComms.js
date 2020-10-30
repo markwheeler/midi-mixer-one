@@ -19,8 +19,8 @@ class MidiComms {
         this.accessBlockedCallback = function() {};
         this.failedToStartCallback = function() {};
         this.devicesUpdatedCallback = function(devicesIn, devicesOut) {};
-        this.sysexReceivedCallback = function(modelId) {};
-        this.sysexSentCallback = function() {};
+        this.configReceivedCallback = function(modelId) {};
+        this.configSentCallback = function() {};
     }
 
     connect() {
@@ -39,13 +39,13 @@ class MidiComms {
         }
     }
 
-    requestSysex(outDeviceIndex, modelId, protocolVersion) {
+    requestConfig(outDeviceIndex, modelId, protocolVersion) {
         const device = this._midiOut[outDeviceIndex];
         const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, REQUEST, SYSEX_END ];
         device.send(msg);
     }
 
-    sendSysex(outDeviceIndex, modelId, protocolVersion) {
+    sendConfig(outDeviceIndex, modelId, protocolVersion) {
         const device = this._midiOut[outDeviceIndex];
         const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, STORE,
             0x00, // Test data
@@ -55,7 +55,7 @@ class MidiComms {
             0x04,
             SYSEX_END ];
         device.send(msg);
-        this.sysexSentCallback();
+        this.configSentCallback();
     }
 
     _ready(midi) {
@@ -96,14 +96,14 @@ class MidiComms {
 
         console.log("Received MIDI message", event.data); // TODO remove
 
-        // Check start and end bytes
+        // Check if sysex
         if((event.data[0] & 0xF0) === SYSEX_START && (event.data[event.data.length - 1]) === SYSEX_END) {
 
                 // Check manufacturer ID
                 if(event.data[1] === MANUFACTURER_ID[0] && event.data[2] === MANUFACTURER_ID[1] && event.data[3] === MANUFACTURER_ID[2]) {
 
                     // Callback: modelId, protocolVersion, data
-                    this.sysexReceivedCallback(event.data[4], event.data[5], event.data.slice(7, -1));
+                    this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, -1));
                 }
         }
     }
