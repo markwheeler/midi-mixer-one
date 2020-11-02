@@ -40,9 +40,9 @@ class ConfigUI {
 
     generateSettings() {
 
-        const midiChannelRange = [];
-        const midiRange = [];
-        const keyRange = ["None"];
+        let midiChannelRange = [];
+        let midiRange = [];
+        let keyRange = ["None"];
         
         for( let i = 1; i < 17; i ++ ) { midiChannelRange[i] = i; }
         for( let i = 0; i < 128; i ++ ) { midiRange[i] = i; }
@@ -57,14 +57,14 @@ class ConfigUI {
 
         // Keypad
         let keypadSection = this._generateSection();
-        keypadSection.appendChild(this._generateItem("Keypad", ["keypadChannel"], ["Channel"], [midiChannelRange]));
+        keypadSection.appendChild(this._generateItem("Keypad", ["keyChannel"], ["Channel"], [midiChannelRange]));
         keypadSection.appendChild(this._generateItem("Send All CCs", ["sendAllKey"], ["Key"], [keyRange]));
         settings.appendChild(keypadSection);
 
         // Keys
         let keysSection = this._generateSection();
         for( let i = 0; i < this.device.numKeys; i ++ ) {
-            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`key${i + 1}`], ["Note"], [midiRange]));
+            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`keyNote${i + 1}`], ["Note"], [midiRange]));
         }
         settings.appendChild(keysSection);
 
@@ -120,7 +120,18 @@ class ConfigUI {
     }
 
     updateSettings() {
-        // TODO update UI elements from device model
+
+        for(let i = 0; i < configUI.device.numKnobs; i ++) {
+            document.getElementById(`knobChannel${i + 1}`).selectedIndex = configUI.device.knobChannels[i];
+            document.getElementById(`knobCC${i + 1}`).selectedIndex = configUI.device.knobCCs[i];
+        }
+
+        for(let i = 0; i < configUI.device.numKeys; i ++) {
+            document.getElementById(`keyNote${i + 1}`).selectedIndex = configUI.device.keyNotes[i];
+        }
+
+        document.getElementById(`keyChannel`).selectedIndex = configUI.device.keyChannel;
+        document.getElementById(`sendAllKey`).selectedIndex = configUI.device.sendAllKey;
     }
     
     showSettings() {
@@ -150,7 +161,7 @@ class ConfigUI {
 
     setDefaultsButton() {
         // TODO test
-        configUI.device.setDefaults();
+        configUI.device.initValues();
         configUI.updateSettings();
     }
 
@@ -174,9 +185,9 @@ class ConfigUI {
         document.getElementById("selectOut").innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('');
     }
 
-    configReceivedCallback(modelId, protocolVersion, data) {
-
-        console.log("Received data", modelId, protocolVersion, data);
+    configReceivedCallback(modelId, protocolVersion, firmwareVersion, data) {
+        
+        console.log("Received data", modelId, protocolVersion, firmwareVersion, data);
 
         // Check modelId
         if(modelId == MODEL_ID) {
@@ -184,17 +195,11 @@ class ConfigUI {
             // Check protocolVersion
             if(protocolVersion == configUI.device.protocolVersion) {
 
-                // Check sysex length
-                // 3 bytes firmware, 2 per knob, 1 per key, 1 for keypadChannel, 1 for sendAllKey
-                if(data.length == 3 + configUI.device.numKnobs * 2 + configUI.device.numKeys + 2) {
-                    
-                    for(let i = 3; i < data.length; i ++) {
-                        console.log(data[i]);
-                    }
-    
-                    configUI.showMessage(`Updated from ${configUI.device.name}. Firmware version ${data[0]}.${data[1]}.${data[2]}`);
+                // Try to process
+                if(configUI.device.unserialize(data)) {
                     configUI.updateSettings();
                     configUI.showSettings();
+                    configUI.showMessage(`Updated from ${configUI.device.name}. Firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}`);
     
                 } else {
                     configUI.showMessage("Invalid data received.")

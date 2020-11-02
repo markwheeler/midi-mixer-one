@@ -121,8 +121,8 @@ class MidiComms {
                 // Check command
                 if(event.data[6] === RESPONSE) {
                     
-                    // Callback: modelId, protocolVersion, data
-                    this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, -1));
+                    // Callback: modelId, protocolVersion, firmwareVersion, data
+                    this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, 10), event.data.slice(10, -1));
                 }
             }
         }
