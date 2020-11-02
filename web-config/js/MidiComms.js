@@ -6,6 +6,7 @@ const SYSEX_END = 0xF7;
 const MANUFACTURER_ID = [0x7D, 0x00, 0x00];
 const REQUEST = 0x00;
 const STORE = 0x01;
+const RESPONSE = 0x02;
 
 
 class MidiComms {
@@ -21,6 +22,7 @@ class MidiComms {
         this.devicesUpdatedCallback = function(devicesIn, devicesOut) {};
         this.configReceivedCallback = function(modelId) {};
         this.configSentCallback = function() {};
+        this.requestSentCallback = function() {};
     }
 
     connect() {
@@ -31,7 +33,7 @@ class MidiComms {
                     (midi) => this._ready(midi),
                     (err) => {
                         this.accessBlockedCallback();
-                        console.log("Could not start WebMIDI: " + err);
+                        console.log("Could not start WebMIDI.", err);
                     });
 
         } else {
@@ -43,6 +45,7 @@ class MidiComms {
         const device = this._midiOut[outDeviceIndex];
         const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, REQUEST, SYSEX_END ];
         device.send(msg);
+        this.requestSentCallback();
     }
 
     sendConfig(outDeviceIndex, modelId, protocolVersion) {
@@ -56,6 +59,19 @@ class MidiComms {
             SYSEX_END ];
         device.send(msg);
         this.configSentCallback();
+    }
+
+    sendDummyResponse(outDeviceIndex, modelId, protocolVersion) {
+        const device = this._midiOut[outDeviceIndex];
+        let data = [];
+        for(let i = 0; i < 96; i ++) {
+            data[i] = i;
+        }
+        const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, RESPONSE,
+            0x00, 0x00, 0x00, // Firmware version
+            ...data,
+            SYSEX_END ];
+        device.send(msg);
     }
 
     _ready(midi) {
@@ -99,12 +115,16 @@ class MidiComms {
         // Check if sysex
         if((event.data[0] & 0xF0) === SYSEX_START && (event.data[event.data.length - 1]) === SYSEX_END) {
 
-                // Check manufacturer ID
-                if(event.data[1] === MANUFACTURER_ID[0] && event.data[2] === MANUFACTURER_ID[1] && event.data[3] === MANUFACTURER_ID[2]) {
+            // Check manufacturer ID
+            if(event.data[1] === MANUFACTURER_ID[0] && event.data[2] === MANUFACTURER_ID[1] && event.data[3] === MANUFACTURER_ID[2]) {
 
+                // Check command
+                if(event.data[6] === RESPONSE) {
+                    
                     // Callback: modelId, protocolVersion, data
                     this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, -1));
                 }
+            }
         }
     }
 }

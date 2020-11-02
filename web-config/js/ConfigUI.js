@@ -11,6 +11,7 @@ class ConfigUI {
         this._midiComms.devicesUpdatedCallback = this.devicesUpdatedCallback;
         this._midiComms.configReceivedCallback = this.configReceivedCallback;
         this._midiComms.configSentCallback = this.configSentCallback;
+        this._midiComms.requestSentCallback = this.requestSentCallback;
         this._midiComms.connect();
         
         this.device = new Device(MODEL_ID);
@@ -63,14 +64,14 @@ class ConfigUI {
         // Keys
         let keysSection = this._generateSection();
         for( let i = 0; i < this.device.numKeys; i ++ ) {
-            keysSection.appendChild(this._generateItem("Key " + (i + 1), ["key" + (i + 1)], ["Note"], [midiRange]));
+            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`key${i + 1}`], ["Note"], [midiRange]));
         }
         settings.appendChild(keysSection);
 
         // Knobs
         let knobsSection = this._generateSection();
         for( let i = 0; i < this.device.numKnobs; i ++ ) {
-            knobsSection.appendChild(this._generateItem("Knob " + (i + 1), ["knobChannel" + (i + 1), "knobCC" + (i + 1)], ["Channel", "Control"], [midiChannelRange, midiRange]));
+            knobsSection.appendChild(this._generateItem(`Knob ${i + 1}`, [`knobChannel${i + 1}`, `knobCC${i + 1}`], ["Channel", "Control"], [midiChannelRange, midiRange]));
         }
         settings.appendChild(knobsSection);
 
@@ -132,14 +133,6 @@ class ConfigUI {
         document.getElementById("settings").classList.add("hidden");
     }
 
-    incompatibleFirmware(versionExpected) {
-        configUI.showMessage("Incompatible firmware. Expecting protocol version " + versionExpected + ".")
-    }
-
-    incompatibleDevice() {
-        configUI.showMessage("Incompatible device selected.")
-    }
-
 
     // Button events
 
@@ -149,6 +142,10 @@ class ConfigUI {
 
     sendConfigButton() {
         configUI._midiComms.sendConfig(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion);
+    }
+
+    dummyResponseButton() {
+        configUI._midiComms.sendDummyResponse(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion);
     }
 
     setDefaultsButton() {
@@ -186,21 +183,38 @@ class ConfigUI {
 
             // Check protocolVersion
             if(protocolVersion == configUI.device.protocolVersion) {
-                configUI.showMessage("Updated from " + configUI.device.name + ".<br>Firmware version X");
-                configUI.updateSettings();
-                configUI.showSettings();
+
+                // Check sysex length
+                // 3 bytes firmware, 2 per knob, 1 per key, 1 for keypadChannel, 1 for sendAllKey
+                if(data.length == 3 + configUI.device.numKnobs * 2 + configUI.device.numKeys + 2) {
+                    
+                    for(let i = 3; i < data.length; i ++) {
+                        console.log(data[i]);
+                    }
+    
+                    configUI.showMessage(`Updated from ${configUI.device.name}. Firmware version ${data[0]}.${data[1]}.${data[2]}`);
+                    configUI.updateSettings();
+                    configUI.showSettings();
+    
+                } else {
+                    configUI.showMessage("Invalid data received.")
+                }
 
             } else {
-                configUI.incompatibleFirmware(configUI.device.protocolVersion);
+                configUI.showMessage(`Incompatible firmware. Expecting protocol version ${configUI.device.protocolVersion}.`)
             }
             
         } else {
-            configUI.incompatibleDevice();
+            configUI.showMessage("Incompatible device selected.")
         }
     }
 
     configSentCallback() {
         configUI.showMessage("Sent to device.")
+    }
+
+    requestSentCallback() {
+        configUI.showMessage("Requesting...")
     }
 
 }
