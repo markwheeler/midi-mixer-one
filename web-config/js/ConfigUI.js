@@ -1,5 +1,12 @@
 const MODEL_ID = 0;
 
+const GLOBAL_CHANNEL_ID = "globalChannel";
+const KEY_CHANNEL_ID = "keyChannel";
+const SEND_ALL_KEY_ID = "sendAllKey";
+const KEY_NOTE_ID = "keyNote";
+const KNOB_CHANNEL_ID = "knobChannel";
+const KNOB_CC_ID = "knobCC";
+
 class ConfigUI {
 
     constructor() {
@@ -30,6 +37,11 @@ class ConfigUI {
         document.getElementById("message").classList.remove("hidden");
     }
 
+    hideMessage() {
+        document.getElementById("message").classList.add("hidden");
+        document.getElementById("messageContent").innerHTML = "";
+    }
+
     showSetup() {
         document.getElementById("setup").classList.remove("hidden");
     }
@@ -52,28 +64,31 @@ class ConfigUI {
 
         // Global
         let globalSection = this._generateSection();
-        globalSection.appendChild(this._generateItem("Global", ["globalChannel"], ["Channel"], [[].concat("None", midiChannelRange)]));
+        globalSection.appendChild(this._generateItem("Global", [GLOBAL_CHANNEL_ID], ["Channel"], [[].concat("None", midiChannelRange)]));
         settings.appendChild(globalSection);
 
         // Keypad
         let keypadSection = this._generateSection();
-        keypadSection.appendChild(this._generateItem("Keypad", ["keyChannel"], ["Channel"], [midiChannelRange]));
-        keypadSection.appendChild(this._generateItem("Send All CCs", ["sendAllKey"], ["Key"], [keyRange]));
+        keypadSection.appendChild(this._generateItem("Keypad", [KEY_CHANNEL_ID], ["Channel"], [midiChannelRange]));
+        keypadSection.appendChild(this._generateItem("Send All CCs", [SEND_ALL_KEY_ID], ["Key"], [keyRange]));
         settings.appendChild(keypadSection);
 
         // Keys
         let keysSection = this._generateSection();
         for( let i = 0; i < this.device.numKeys; i ++ ) {
-            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`keyNote${i + 1}`], ["Note"], [midiRange]));
+            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`${KEY_NOTE_ID}${i + 1}`], ["Note"], [midiRange]));
         }
         settings.appendChild(keysSection);
 
         // Knobs
         let knobsSection = this._generateSection();
         for( let i = 0; i < this.device.numKnobs; i ++ ) {
-            knobsSection.appendChild(this._generateItem(`Knob ${i + 1}`, [`knobChannel${i + 1}`, `knobCC${i + 1}`], ["Channel", "Control"], [midiChannelRange, midiRange]));
+            knobsSection.appendChild(this._generateItem(`Knob ${i + 1}`, [`${KNOB_CHANNEL_ID}${i + 1}`, `${KNOB_CC_ID}${i + 1}`], ["Channel", "Control"], [midiChannelRange, midiRange]));
         }
         settings.appendChild(knobsSection);
+
+
+        settings.addEventListener("change", this.settingSelectChanged);
 
     }
 
@@ -145,7 +160,7 @@ class ConfigUI {
     }
 
 
-    // Button events
+    // Form events
 
     requestConfigButton() {
         configUI._midiComms.requestConfig(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion);
@@ -163,6 +178,42 @@ class ConfigUI {
         // TODO test
         configUI.device.initValues();
         configUI.updateSettings();
+    }
+
+    selectInChanged() {
+        configUI.hideSettings();
+        configUI.hideMessage()
+    }
+
+    selectOutChanged() {
+        configUI.hideSettings();
+        configUI.hideMessage()
+    }
+
+    settingSelectChanged(event) {
+
+        if(event.target.id.startsWith(GLOBAL_CHANNEL_ID)) {
+            console.log(GLOBAL_CHANNEL_ID, event.target.selectedIndex);
+
+        } else if(event.target.id.startsWith(KEY_CHANNEL_ID)) {
+            console.log(KEY_CHANNEL_ID, event.target.selectedIndex);
+
+        } else if(event.target.id.startsWith(SEND_ALL_KEY_ID)) {
+            console.log(SEND_ALL_KEY_ID, event.target.selectedIndex);
+
+        } else if(event.target.id.startsWith(KEY_NOTE_ID)) {
+            let index = parseInt(event.target.id.replace(KEY_NOTE_ID, ""));
+            console.log(KEY_NOTE_ID, index, event.target.selectedIndex);
+
+        } else if(event.target.id.startsWith(KNOB_CHANNEL_ID)) {
+            let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, ""));
+            console.log(KNOB_CHANNEL_ID, index, event.target.selectedIndex);
+
+        } else if(event.target.id.startsWith(KNOB_CC_ID)) {
+            let index = parseInt(event.target.id.replace(KNOB_CC_ID, ""));
+            console.log(KNOB_CC_ID, index, event.target.selectedIndex);
+
+        }
     }
 
 

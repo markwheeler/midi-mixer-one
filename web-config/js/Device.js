@@ -34,6 +34,14 @@ class Device {
                 defaultKeyChannel: 1,
                 defaultSendAllKey: 0,
 
+                initValues() {
+                    this.knobChannels = this.defaultKnobChannels;
+                    this.knobCCs = this.defaultKnobCCs;
+                    this.keyChannel = this.defaultKeyChannel;
+                    this.keyNotes = this.defaultKeyNotes;
+                    this.sendAllKey = this.defaultSendAllKey;
+                },
+
                 // 2 bytes per knob, 1 per key, 1 for keypadChannel, 1 for sendAllKey
                 serialDataLen: 96,
 
@@ -80,16 +88,8 @@ class Device {
 
         for(let k in devices[modelId]) {
             this[k] = devices[modelId][k];
-            this.initValues();
         }
-    }
-
-    initValues() {
-        this.knobChannels = this.defaultKnobChannels;
-        this.knobCCs = this.defaultKnobCCs;
-        this.keyChannel = this.defaultKeyChannel;
-        this.keyNotes = this.defaultKeyNotes;
-        this.sendAllKey = this.defaultSendAllKey;
+        this.initValues();
     }
 
 }

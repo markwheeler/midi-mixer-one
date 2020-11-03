@@ -33,10 +33,10 @@
         <div id="setup" class="hidden">
             <div class="section">
                 <div class="item">
-                    <label for="selectIn" class="itemName">MIDI Input</label><select id="selectIn"></select>
+                    <label for="selectIn" class="itemName">MIDI Input</label><select id="selectIn" onchange="configUI.selectInChanged()"></select>
                 </div>
                 <div class="item">
-                    <label for="selectOut" class="itemName">MIDI Output</label><select id="selectOut"></select>
+                    <label for="selectOut" class="itemName">MIDI Output</label><select id="selectOut" onchange="configUI.selectOutChanged()"></select>
                 </div>
             </div>
 
