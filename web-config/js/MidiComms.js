@@ -48,15 +48,9 @@ class MidiComms {
         this.requestSentCallback();
     }
 
-    sendConfig(outDeviceIndex, modelId, protocolVersion) {
+    sendConfig(outDeviceIndex, modelId, protocolVersion, data) {
         const device = this._midiOut[outDeviceIndex];
-        const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, STORE,
-            0x00, // Test data
-            0x01,
-            0x02,
-            0x03,
-            0x04,
-            SYSEX_END ];
+        const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, STORE, ...data, SYSEX_END ];
         device.send(msg);
         this.configSentCallback();
     }
@@ -64,8 +58,9 @@ class MidiComms {
     sendDummyResponse(outDeviceIndex, modelId, protocolVersion) {
         const device = this._midiOut[outDeviceIndex];
         let data = [];
-        for(let i = 0; i < 96; i ++) {
-            data[i] = i;
+        for(let i = 0; i < 96; i += 2) {
+            data[i] = 15;
+            data[i + 1] = i;
         }
         const msg = [ SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, RESPONSE,
             0x00, 0x00, 0x00, // Firmware version

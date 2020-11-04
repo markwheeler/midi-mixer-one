@@ -42,12 +42,24 @@ class Device {
                     this.sendAllKey = this.defaultSendAllKey;
                 },
 
-                // 2 bytes per knob, 1 per key, 1 for keypadChannel, 1 for sendAllKey
+                // Format is: 2 bytes per knob (channel then CC), 1 per key, 1 for keypadChannel, 1 for sendAllKey
                 serialDataLen: 96,
 
                 serialize() {
                     let data = []
-                    // TODO
+                    
+                    for(let i = 0; i < this.numKnobs; i ++) {
+                        data.push(this.knobChannels[i]);
+                        data.push(this.knobCCs[i]);
+                    }
+
+                    for(let i = 0; i < this.numKeys; i ++) {
+                        data.push(this.keyNotes[i]);
+                    }
+
+                    data.push(this.keyChannel);
+                    data.push(this.sendAllKey);
+
                     return data;
                 },
 
@@ -69,8 +81,10 @@ class Device {
                         }
 
                         // Key notes
+                        let keyIndex = 0;
                         for(let i = KEYS_DATA_START; i < EXTRA_DATA_START; i ++) {
-                            this.keyNotes[i] = Math.min(Math.max(data[i], 0), 127);
+                            this.keyNotes[keyIndex] = Math.min(Math.max(data[i], 0), 127);
+                            keyIndex ++;
                         }
 
                         this.keyChannel = Math.min(Math.max(data[EXTRA_DATA_START], 1), 16);

@@ -137,7 +137,7 @@ class ConfigUI {
     updateSettings() {
 
         for(let i = 0; i < configUI.device.numKnobs; i ++) {
-            document.getElementById(`knobChannel${i + 1}`).selectedIndex = configUI.device.knobChannels[i];
+            document.getElementById(`knobChannel${i + 1}`).selectedIndex = configUI.device.knobChannels[i] - 1;
             document.getElementById(`knobCC${i + 1}`).selectedIndex = configUI.device.knobCCs[i];
         }
 
@@ -145,7 +145,7 @@ class ConfigUI {
             document.getElementById(`keyNote${i + 1}`).selectedIndex = configUI.device.keyNotes[i];
         }
 
-        document.getElementById(`keyChannel`).selectedIndex = configUI.device.keyChannel;
+        document.getElementById(`keyChannel`).selectedIndex = configUI.device.keyChannel - 1;
         document.getElementById(`sendAllKey`).selectedIndex = configUI.device.sendAllKey;
     }
     
@@ -167,7 +167,8 @@ class ConfigUI {
     }
 
     sendConfigButton() {
-        configUI._midiComms.sendConfig(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion);
+        let data = configUI.device.serialize();
+        configUI._midiComms.sendConfig(document.getElementById("selectOut").selectedIndex, MODEL_ID, this.device.protocolVersion, data);
     }
 
     dummyResponseButton() {
@@ -194,24 +195,25 @@ class ConfigUI {
 
         if(event.target.id.startsWith(GLOBAL_CHANNEL_ID)) {
             console.log(GLOBAL_CHANNEL_ID, event.target.selectedIndex);
+            // TODO
 
         } else if(event.target.id.startsWith(KEY_CHANNEL_ID)) {
-            console.log(KEY_CHANNEL_ID, event.target.selectedIndex);
+            configUI.device.keyChannel = event.target.selectedIndex + 1;
 
         } else if(event.target.id.startsWith(SEND_ALL_KEY_ID)) {
-            console.log(SEND_ALL_KEY_ID, event.target.selectedIndex);
+            configUI.device.sendAllKey = event.target.selectedIndex;
 
         } else if(event.target.id.startsWith(KEY_NOTE_ID)) {
-            let index = parseInt(event.target.id.replace(KEY_NOTE_ID, ""));
-            console.log(KEY_NOTE_ID, index, event.target.selectedIndex);
+            let index = parseInt(event.target.id.replace(KEY_NOTE_ID, "")) - 1;
+            configUI.device.keyNote[index] = event.target.selectedIndex;
 
         } else if(event.target.id.startsWith(KNOB_CHANNEL_ID)) {
-            let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, ""));
-            console.log(KNOB_CHANNEL_ID, index, event.target.selectedIndex);
+            let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, "")) - 1;
+            configUI.device.knobChannels[index] = event.target.selectedIndex + 1;
 
         } else if(event.target.id.startsWith(KNOB_CC_ID)) {
-            let index = parseInt(event.target.id.replace(KNOB_CC_ID, ""));
-            console.log(KNOB_CC_ID, index, event.target.selectedIndex);
+            let index = parseInt(event.target.id.replace(KNOB_CC_ID, "")) - 1;
+            configUI.device.knobCCs[index] = event.target.selectedIndex;
 
         }
     }
@@ -238,7 +240,7 @@ class ConfigUI {
 
     configReceivedCallback(modelId, protocolVersion, firmwareVersion, data) {
         
-        console.log("Received data", modelId, protocolVersion, firmwareVersion, data);
+        // console.log("Received data", modelId, protocolVersion, firmwareVersion, data); // TODO remove
 
         // Check modelId
         if(modelId == MODEL_ID) {
