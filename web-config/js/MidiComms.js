@@ -108,7 +108,7 @@ class MidiComms {
         console.log("Received MIDI message", event.data); // TODO remove
 
         // Check if sysex
-        if((event.data[0] & 0xF0) === SYSEX_START && (event.data[event.data.length - 1]) === SYSEX_END) {
+        if(event.data[0] === SYSEX_START && event.data[event.data.length - 1] === SYSEX_END) {
 
             // Check manufacturer ID
             if(event.data[1] === MANUFACTURER_ID[0] && event.data[2] === MANUFACTURER_ID[1] && event.data[3] === MANUFACTURER_ID[2]) {

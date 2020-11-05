@@ -1,7 +1,8 @@
 // MIDI Mixer One
-// v1.0.0
 // Mark Eats / Mark Wheeler
 // Uses snippets from https://github.com/dxinteractive/ResponsiveAnalogRead/
+
+const byte FIRMWARE_VERSION[] = {2, 0, 0};
 
 
 //// MIDI config ////
@@ -22,7 +23,7 @@ const byte MIDI_CCS[] = {
   };
 
 // Switch note numbers
-const byte MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+const byte MIDI_NOTE_NUMS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
 // Define a key that sends all pot values (-1 to disable)
 #define SEND_ALL_KEY 8
@@ -62,6 +63,18 @@ const byte SWITCH_PINS[] =      {3, 11, 7, 2, 6, 8, 1, 5, 9, 0, 4, 10};
 
 const int POT_RES = pow(2, POT_BITS);
 
+// Sysex
+const byte MANUFACTURER_ID[] =  {0x7D, 0x00, 0x00};
+#define MODEL_ID                0
+#define PROTOCOL_VERSION        0
+#define SYSEX_START_CODE        0xF0
+#define SYSEX_END_CODE          0xF7
+#define REQUEST                 0x00
+#define REQUEST_SIZE            8
+#define STORE                   0x01
+#define STORE_SIZE              104
+#define RESPONSE                0x02
+
 // Vars
 float pot_values[NUM_POTS];
 byte pot_midi_values[NUM_POTS];
@@ -91,9 +104,12 @@ void setup() {
   // LED
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+
+  // Sysex
+  usbMIDI.setHandleSystemExclusive(processSysex);
 }
 
-void send_all_pot_values() {
+void sendAllPotValues() {
   for(byte i = 0; i < NUM_POTS; i ++) {
     usbMIDI.sendControlChange(MIDI_CCS[i], pot_midi_values[i], MIDI_CHANNEL);
   }
@@ -161,7 +177,7 @@ void readSwitches() {
     // Send all pot values
     if(i == SEND_ALL_KEY) {
       if(switches[i].fell()) {
-        send_all_pot_values();
+        sendAllPotValues();
       }
       
     // Send MIDI notes
@@ -175,6 +191,66 @@ void readSwitches() {
   }
 }
 
+void processSysex(byte* sysexData, unsigned size) {
+
+  // TODO remove
+  for(unsigned i = 0; i < size; i ++) {
+    Serial.println(sysexData[i]);
+  }
+
+  // Format should be:
+  // SYSEX_START_CODE, MANUFACTURER_ID x3, MODEL_ID, PROTOCOL_VERSION, command, dataArray, SYSEX_END_CODE
+
+  // Check length
+  if(size > 7) {
+  
+    // Check for start and end
+    if(sysexData[0] == SYSEX_START_CODE && sysexData[size - 1] == SYSEX_END_CODE) {
+      
+      // Check manufacturer, model
+      if(sysexData[1] == MANUFACTURER_ID[0] && sysexData[2] == MANUFACTURER_ID[1] && sysexData[3] == MANUFACTURER_ID[2]
+        && sysexData[4] == MODEL_ID) {
+
+        // Check protocol
+        if(sysexData[5] != PROTOCOL_VERSION) {
+          sendSysexProtocolVersion();
+
+        } else {
+          // Request
+          if(sysexData[6] == REQUEST && size == REQUEST_SIZE) {
+            Serial.println("Sysex request");
+            sendSysexConfig();
+    
+          // Store
+          } else if(sysexData[6] == STORE && size == STORE_SIZE) {
+            Serial.println("Sysex store");
+            storeSysexConfig(sysexData);
+            
+          } else {
+            Serial.println("Unknown sysex command");
+          }
+        }
+      }
+    }
+  }
+}
+
+void sendSysexProtocolVersion() {
+  // TODO better way to concat array? Store it?
+  byte sysexData[] = {MANUFACTURER_ID[0], MANUFACTURER_ID[1], MANUFACTURER_ID[2], MODEL_ID, PROTOCOL_VERSION, RESPONSE, FIRMWARE_VERSION[0], FIRMWARE_VERSION[1], FIRMWARE_VERSION[2]};
+  usbMIDI.sendSysEx(sizeof(sysexData), sysexData, false);
+}
+
+
+void sendSysexConfig() {
+  byte sysexData[] = {1, 2, 3, 4, 5};
+  usbMIDI.sendSysEx(sizeof(sysexData), sysexData, false);
+}
+
+void storeSysexConfig(byte* sysexData) {
+  
+}
+
 void loop() {
   
 //  unsigned long startTime = micros();
@@ -182,7 +258,6 @@ void loop() {
   readPots();
   readSwitches();
 
-  // Discard incoming MIDI
   while (usbMIDI.read()) {
   }
   
