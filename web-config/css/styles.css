@@ -80,12 +80,10 @@ div#content {
 	max-width: 520px;
     margin: 32px auto;
     padding: 0 16px 0 16px;
-    /* background: #f2f2f2; */
 }
 
 div.section {
 	margin: 48px 0 0 0;
-	/* background: #f2ffff; */
 }
 
 div.item {
