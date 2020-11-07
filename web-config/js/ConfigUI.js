@@ -41,12 +41,11 @@ class ConfigUI {
             configUI.hideSetup();
             document.getElementById("message").classList.add("fatal");
         }
-        document.getElementById("message").classList.remove("hidden");
+        document.getElementById("message").classList.remove("invisible");
     }
 
     hideMessage() {
-        document.getElementById("message").classList.add("hidden");
-        document.getElementById("messageContent").innerHTML = "";
+        document.getElementById("message").classList.add("invisible");
     }
 
     showSetup() {
@@ -225,16 +224,17 @@ class ConfigUI {
         configUI.device.initValues();
         configUI.checkForGlobalChannel();
         configUI.updateSettings();
+        configUI.hideMessage();
     }
 
     selectInChanged() {
         configUI.hideSettings();
-        configUI.hideMessage()
+        configUI.hideMessage();
     }
 
     selectOutChanged() {
         configUI.hideSettings();
-        configUI.hideMessage()
+        configUI.hideMessage();
     }
 
     settingSelectChanged(event) {
@@ -271,6 +271,8 @@ class ConfigUI {
             configUI.device.knobCCs[index] = event.target.selectedIndex;
 
         }
+
+        configUI.hideMessage();
     }
 
 
