@@ -36,24 +36,24 @@ class ConfigUI {
     // UI
 
     showMessage(message, fatal = false) {
-        document.getElementById("messageContent").innerHTML = message;
+        document.getElementById( "messageContent" ).innerHTML = message;
         if( fatal ) {
             configUI.hideSetup();
-            document.getElementById("message").classList.add("fatal");
+            document.getElementById( "message" ).classList.add( "fatal" );
         }
-        document.getElementById("message").classList.remove("invisible");
+        document.getElementById( "message" ).classList.remove( "invisible" );
     }
 
     hideMessage() {
-        document.getElementById("message").classList.add("invisible");
+        document.getElementById( "message" ).classList.add( "invisible" );
     }
 
     showSetup() {
-        document.getElementById("setup").classList.remove("hidden");
+        document.getElementById( "setup" ).classList.remove( "hidden" );
     }
     
     hideSetup() {
-        document.getElementById("setup").classList.add("hidden");
+        document.getElementById( "setup" ).classList.add( "hidden" );
     }
 
     _attachEvents() {
@@ -230,6 +230,7 @@ class ConfigUI {
     selectInChanged() {
         configUI.hideSettings();
         configUI.hideMessage();
+        configUI._midiComms.inDeviceIndex = document.getElementById(SELECT_IN_ID).selectedIndex;
     }
 
     selectOutChanged() {
@@ -239,7 +240,7 @@ class ConfigUI {
 
     settingSelectChanged(event) {
 
-        if(event.target.id.startsWith(GLOBAL_CHANNEL_ID)) {
+        if( event.target.id.startsWith(GLOBAL_CHANNEL_ID) ) {
             if( event.target.selectedIndex > 0 ) {
                 for( let i = 0; i < configUI.device.numKnobs; i ++ ) {
                     configUI.device.knobChannels[i] = event.target.selectedIndex;
@@ -252,21 +253,21 @@ class ConfigUI {
                 configUI.disableGlobalChannel();
             }
 
-        } else if(event.target.id.startsWith(KEY_CHANNEL_ID)) {
+        } else if( event.target.id.startsWith(KEY_CHANNEL_ID) ) {
             configUI.device.keyChannel = event.target.selectedIndex + 1;
 
-        } else if(event.target.id.startsWith(SEND_ALL_KEY_ID)) {
+        } else if( event.target.id.startsWith(SEND_ALL_KEY_ID) ) {
             configUI.device.sendAllKey = event.target.selectedIndex;
 
-        } else if(event.target.id.startsWith(KEY_NOTE_ID)) {
+        } else if( event.target.id.startsWith(KEY_NOTE_ID) ) {
             let index = parseInt(event.target.id.replace(KEY_NOTE_ID, "")) - 1;
             configUI.device.keyNote[index] = event.target.selectedIndex;
 
-        } else if(event.target.id.startsWith(KNOB_CHANNEL_ID)) {
+        } else if( event.target.id.startsWith(KNOB_CHANNEL_ID) ) {
             let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, "")) - 1;
             configUI.device.knobChannels[index] = event.target.selectedIndex + 1;
 
-        } else if(event.target.id.startsWith(KNOB_CC_ID)) {
+        } else if( event.target.id.startsWith(KNOB_CC_ID) ) {
             let index = parseInt(event.target.id.replace(KNOB_CC_ID, "")) - 1;
             configUI.device.knobCCs[index] = event.target.selectedIndex;
 
@@ -293,6 +294,9 @@ class ConfigUI {
     devicesUpdatedCallback(devicesIn, devicesOut) {
         document.getElementById(SELECT_IN_ID).innerHTML = devicesIn.map(device => `<option>${device.name}</option>`).join('');
         document.getElementById(SELECT_OUT_ID).innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('');
+        configUI.hideSettings();
+        configUI._midiComms.inDeviceIndex = document.getElementById(SELECT_IN_ID).selectedIndex;
+        configUI.showMessage('MIDI devices updated.');
     }
 
     configReceivedCallback(modelId, protocolVersion, firmwareVersion, data) {

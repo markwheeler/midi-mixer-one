@@ -16,6 +16,8 @@ class MidiComms {
         this._midiIn = [];
         this._midiOut = [];
 
+        this.inDeviceIndex = 0;
+
         this.readyCallback = function() {};
         this.accessBlockedCallback = function() {};
         this.failedToStartCallback = function() {};
@@ -77,47 +79,69 @@ class MidiComms {
 
     _initDevices(midi) {
 
-        this._midiIn = [];
-        this._midiOut = [];
+        // Check if devices have changed (statechange is also called when ports have opened/closed)
+        
+        let newMidiIn = [];
+        let newMidiOut = [];
+        let portsChanged = false;
 
-        const inputs = midi.inputs.values();
-        for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
-            this._midiIn.push(input.value);
+        const inputs = Array.from(midi.inputs.values());
+        const outputs = Array.from(midi.outputs.values());
+
+        if( inputs.length != this._midiIn.length || outputs.length != this._midiOut.length ) {
+            portsChanged = true;
         }
 
-        const outputs = midi.outputs.values();
-        for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
-            this._midiOut.push(output.value);
+        for( let i = 0; i < inputs.length; i ++ ) {
+            if(portsChanged || this._midiIn[i].id != inputs[i].id) {
+                newMidiIn.push(inputs[i]);
+                portsChanged = true;
+            }
         }
 
-        this.devicesUpdatedCallback(this._midiIn, this._midiOut);
-        this._startListening();
+        for( let i = 0; i < outputs.length; i ++ ) {
+            if(portsChanged || this._midiOut[i].id != outputs[i].id) {
+                newMidiOut.push(outputs[i]);
+                portsChanged = true;
+            }
+        }
+
+        if( portsChanged ) {
+            console.log( "MIDI ports changed" );
+            this._midiIn = [...newMidiIn];
+            this._midiOut = [...newMidiOut];
+            this.devicesUpdatedCallback( this._midiIn, this._midiOut );
+            this._startListening();
+        }
     }
 
     _startListening() {
-        // TODO filter only correct input??
-        for (const input of this._midiIn) {
-            input.addEventListener('midimessage', this._messageReceived);
+        for( const input of this._midiIn ) {
+            input.addEventListener( 'midimessage', this._messageReceived );
         }
     }
 
-    _messageReceived = (event) => this._processMessage(event);
+    _messageReceived = ( event ) => this._processMessage( event );
 
-    _processMessage(event) {
+    _processMessage( event ) {
 
-        console.log("Received MIDI message", event.data); // TODO remove
+        // Check input
+        if(event.target == this._midiIn[this.inDeviceIndex]) {
 
-        // Check if sysex
-        if(event.data[0] === SYSEX_START && event.data[event.data.length - 1] === SYSEX_END) {
+            // console.log("Received MIDI message", event); // TODO remove
+            
+            // Check if sysex
+            if(event.data[0] === SYSEX_START && event.data[event.data.length - 1] === SYSEX_END) {
 
-            // Check manufacturer ID
-            if(event.data[1] === MANUFACTURER_ID[0] && event.data[2] === MANUFACTURER_ID[1] && event.data[3] === MANUFACTURER_ID[2]) {
+                // Check manufacturer ID
+                if(event.data[1] === MANUFACTURER_ID[0] && event.data[2] === MANUFACTURER_ID[1] && event.data[3] === MANUFACTURER_ID[2]) {
 
-                // Check command
-                if(event.data[6] === RESPONSE) {
-                    
-                    // Callback: modelId, protocolVersion, firmwareVersion, data
-                    this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, 10), event.data.slice(10, -1));
+                    // Check command
+                    if(event.data[6] === RESPONSE) {
+                        
+                        // Callback: modelId, protocolVersion, firmwareVersion, data
+                        this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, 10), event.data.slice(10, -1));
+                    }
                 }
             }
         }
