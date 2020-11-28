@@ -10,7 +10,6 @@ const SELECT_IN_ID = "selectIn";
 const SELECT_OUT_ID = "selectOut";
 const REQUEST_BUTTON_ID = "requestButton";
 const SEND_BUTTON_ID = "sendButton";
-const DUMMY_RESPONSE_BUTTON_ID = "dummyResponseButton";
 const DEFAULTS_BUTTON_ID = "defaultsButton";
 
 class ConfigUI {
@@ -61,7 +60,6 @@ class ConfigUI {
         document.getElementById(SELECT_OUT_ID).addEventListener("change", this.selectOutChanged);
         document.getElementById(REQUEST_BUTTON_ID).addEventListener("click", this.requestConfigButton);
         document.getElementById(SEND_BUTTON_ID).addEventListener("click", this.sendConfigButton);
-        document.getElementById(DUMMY_RESPONSE_BUTTON_ID).addEventListener("click", this.dummyResponseButton);
         document.getElementById(DEFAULTS_BUTTON_ID).addEventListener("click", this.setDefaultsButton);
     }
 
@@ -214,10 +212,6 @@ class ConfigUI {
     sendConfigButton() {
         let data = configUI.device.serialize();
         configUI._midiComms.sendConfig(document.getElementById(SELECT_OUT_ID).selectedIndex, MODEL_ID, configUI.device.protocolVersion, data);
-    }
-
-    dummyResponseButton() {
-        configUI._midiComms.sendDummyResponse(document.getElementById(SELECT_OUT_ID).selectedIndex, MODEL_ID, configUI.device.protocolVersion);
     }
 
     setDefaultsButton() {

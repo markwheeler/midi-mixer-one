@@ -57,20 +57,6 @@ class MidiComms {
         this.configSentCallback();
     }
 
-    sendDummyResponse(outDeviceIndex, modelId, protocolVersion) {
-        const device = this._midiOut[outDeviceIndex];
-        let data = [];
-        for (let i = 0; i < 96; i += 2) {
-            data[i] = 15;
-            data[i + 1] = i;
-        }
-        const msg = [SYSEX_START, ...MANUFACTURER_ID, modelId, protocolVersion, RESPONSE,
-            0x00, 0x00, 0x00, // Firmware version
-            ...data,
-            SYSEX_END];
-        device.send(msg);
-    }
-
     _ready(midi) {
         midi.addEventListener('statechange', (event) => this._initDevices(event.target));
         this._initDevices(midi);
