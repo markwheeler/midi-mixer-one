@@ -5,6 +5,7 @@ class Device {
         const devices = [
             {
                 name: "MIDI Mixer One",
+                midiName: "Mixer One",
                 modelId: 0,
                 protocolVersion: 0,
                 numKnobs: 41,

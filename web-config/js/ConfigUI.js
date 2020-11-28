@@ -286,9 +286,24 @@ class ConfigUI {
     }
 
     devicesUpdatedCallback(devicesIn, devicesOut) {
-        document.getElementById(SELECT_IN_ID).innerHTML = devicesIn.map(device => `<option>${device.name}</option>`).join('');
-        document.getElementById(SELECT_OUT_ID).innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('');
         configUI.hideSettings();
+        document.getElementById(SELECT_IN_ID).innerHTML = devicesIn.map(device => `<option>${device.name}</option>`).join('');
+        document.getElementById(SELECT_OUT_ID).innerHTML = devicesOut.map(device => `<option>${device.name}</option>`).join('')
+
+        // Try to auto-select the right ports
+        for(let i = 0; i < devicesIn.length; i++) {
+            if (devicesIn[i].name == configUI.device.midiName) {
+                document.getElementById(SELECT_IN_ID).selectedIndex = i;
+                break;
+            }
+        };
+        for(let i = 0; i < devicesOut.length; i++) {
+            if (devicesOut[i].name == configUI.device.midiName) {
+                document.getElementById(SELECT_OUT_ID).selectedIndex = i;
+                break;
+            }
+        };
+
         configUI._midiComms.inDeviceIndex = document.getElementById(SELECT_IN_ID).selectedIndex;
         configUI.showMessage('MIDI devices updated.');
     }
