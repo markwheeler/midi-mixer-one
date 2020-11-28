@@ -26,7 +26,7 @@ class ConfigUI {
         this._midiComms.configSentCallback = this.configSentCallback;
         this._midiComms.requestSentCallback = this.requestSentCallback;
         this._midiComms.connect();
-        
+
         this.device = new Device(MODEL_ID);
         this._attachEvents();
         this._generateSettings();
@@ -36,24 +36,24 @@ class ConfigUI {
     // UI
 
     showMessage(message, fatal = false) {
-        document.getElementById( "messageContent" ).innerHTML = message;
-        if( fatal ) {
+        document.getElementById("messageContent").innerHTML = message;
+        if (fatal) {
             configUI.hideSetup();
-            document.getElementById( "message" ).classList.add( "fatal" );
+            document.getElementById("message").classList.add("fatal");
         }
-        document.getElementById( "message" ).classList.remove( "invisible" );
+        document.getElementById("message").classList.remove("invisible");
     }
 
     hideMessage() {
-        document.getElementById( "message" ).classList.add( "invisible" );
+        document.getElementById("message").classList.add("invisible");
     }
 
     showSetup() {
-        document.getElementById( "setup" ).classList.remove( "hidden" );
+        document.getElementById("setup").classList.remove("hidden");
     }
-    
+
     hideSetup() {
-        document.getElementById( "setup" ).classList.add( "hidden" );
+        document.getElementById("setup").classList.add("hidden");
     }
 
     _attachEvents() {
@@ -70,10 +70,10 @@ class ConfigUI {
         let midiChannelRange = [];
         let midiRange = [];
         let keyRange = ["None"];
-        
-        for( let i = 1; i < 17; i ++ ) { midiChannelRange[i] = i; }
-        for( let i = 0; i < 128; i ++ ) { midiRange[i] = i; }
-        for( let i = 1; i <= this.device.numKeys; i ++ ) { keyRange.push(i); }
+
+        for (let i = 1; i < 17; i++) { midiChannelRange[i] = i; }
+        for (let i = 0; i < 128; i++) { midiRange[i] = i; }
+        for (let i = 1; i <= this.device.numKeys; i++) { keyRange.push(i); }
 
         let settings = document.getElementById("deviceSettings");
 
@@ -90,14 +90,14 @@ class ConfigUI {
 
         // Keys
         let keysSection = this._generateSection();
-        for( let i = 0; i < this.device.numKeys; i ++ ) {
+        for (let i = 0; i < this.device.numKeys; i++) {
             keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`${KEY_NOTE_ID}${i + 1}`], ["Note"], [midiRange]));
         }
         settings.appendChild(keysSection);
 
         // Knobs
         let knobsSection = this._generateSection();
-        for( let i = 0; i < this.device.numKnobs; i ++ ) {
+        for (let i = 0; i < this.device.numKnobs; i++) {
             knobsSection.appendChild(this._generateItem(`Knob ${i + 1}`, [`${KNOB_CHANNEL_ID}${i + 1}`, `${KNOB_CC_ID}${i + 1}`], ["Channel", "Control"], [midiChannelRange, midiRange]));
         }
         settings.appendChild(knobsSection);
@@ -123,12 +123,12 @@ class ConfigUI {
         nameElement.innerHTML = name;
         itemElement.appendChild(nameElement);
 
-        for( let i = 0; i < properties.length; i ++ ) {
+        for (let i = 0; i < properties.length; i++) {
 
             let propertyElement = document.createElement("label");
             propertyElement.setAttribute("for", ids[i]);
             propertyElement.innerHTML = properties[i];
-            if( i > 0 ) {
+            if (i > 0) {
                 propertyElement.className = "secondary";
                 itemElement.appendChild(document.createElement("br"));
             }
@@ -153,7 +153,7 @@ class ConfigUI {
         document.getElementById(SEND_BUTTON_ID).disabled = false;
         document.getElementById("settings").classList.remove("hidden");
     }
-    
+
     hideSettings() {
         document.getElementById(SEND_BUTTON_ID).disabled = true;
         document.getElementById("settings").classList.add("hidden");
@@ -161,12 +161,12 @@ class ConfigUI {
 
     updateSettings() {
 
-        for( let i = 0; i < configUI.device.numKnobs; i ++ ) {
+        for (let i = 0; i < configUI.device.numKnobs; i++) {
             document.getElementById(`${KNOB_CHANNEL_ID}${i + 1}`).selectedIndex = configUI.device.knobChannels[i] - 1;
             document.getElementById(`${KNOB_CC_ID}${i + 1}`).selectedIndex = configUI.device.knobCCs[i];
         }
 
-        for( let i = 0; i < configUI.device.numKeys; i ++ ) {
+        for (let i = 0; i < configUI.device.numKeys; i++) {
             document.getElementById(`${KEY_NOTE_ID}${i + 1}`).selectedIndex = configUI.device.keyNotes[i];
         }
 
@@ -177,28 +177,28 @@ class ConfigUI {
     checkForGlobalChannel() {
 
         let useGlobalChannel = true;
-        for( let i = 0; i < configUI.device.numKnobs; i ++ ) {
-            if( configUI.device.keyChannel != configUI.device.knobChannels[i] ) {
+        for (let i = 0; i < configUI.device.numKnobs; i++) {
+            if (configUI.device.keyChannel != configUI.device.knobChannels[i]) {
                 useGlobalChannel = false;
                 break;
             }
         }
 
-        if( useGlobalChannel ) {
+        if (useGlobalChannel) {
             document.getElementById(`${GLOBAL_CHANNEL_ID}`).selectedIndex = configUI.device.keyChannel;
             configUI.enableGlobalChannel();
         }
     }
 
     enableGlobalChannel() {
-        for( let i = 0; i < configUI.device.numKnobs; i ++ ) {
+        for (let i = 0; i < configUI.device.numKnobs; i++) {
             document.getElementById(`${KNOB_CHANNEL_ID}${i + 1}`).disabled = true;
         }
         document.getElementById(KEY_CHANNEL_ID).disabled = true;
     }
 
     disableGlobalChannel() {
-        for( let i = 0; i < configUI.device.numKnobs; i ++ ) {
+        for (let i = 0; i < configUI.device.numKnobs; i++) {
             document.getElementById(`${KNOB_CHANNEL_ID}${i + 1}`).disabled = false;
         }
         document.getElementById(KEY_CHANNEL_ID).disabled = false;
@@ -240,34 +240,34 @@ class ConfigUI {
 
     settingSelectChanged(event) {
 
-        if( event.target.id.startsWith(GLOBAL_CHANNEL_ID) ) {
-            if( event.target.selectedIndex > 0 ) {
-                for( let i = 0; i < configUI.device.numKnobs; i ++ ) {
+        if (event.target.id.startsWith(GLOBAL_CHANNEL_ID)) {
+            if (event.target.selectedIndex > 0) {
+                for (let i = 0; i < configUI.device.numKnobs; i++) {
                     configUI.device.knobChannels[i] = event.target.selectedIndex;
                 }
                 configUI.device.keyChannel = event.target.selectedIndex;
                 configUI.enableGlobalChannel();
                 configUI.updateSettings();
-                
+
             } else {
                 configUI.disableGlobalChannel();
             }
 
-        } else if( event.target.id.startsWith(KEY_CHANNEL_ID) ) {
+        } else if (event.target.id.startsWith(KEY_CHANNEL_ID)) {
             configUI.device.keyChannel = event.target.selectedIndex + 1;
 
-        } else if( event.target.id.startsWith(SEND_ALL_KEY_ID) ) {
+        } else if (event.target.id.startsWith(SEND_ALL_KEY_ID)) {
             configUI.device.sendAllKey = event.target.selectedIndex;
 
-        } else if( event.target.id.startsWith(KEY_NOTE_ID) ) {
+        } else if (event.target.id.startsWith(KEY_NOTE_ID)) {
             let index = parseInt(event.target.id.replace(KEY_NOTE_ID, "")) - 1;
             configUI.device.keyNote[index] = event.target.selectedIndex;
 
-        } else if( event.target.id.startsWith(KNOB_CHANNEL_ID) ) {
+        } else if (event.target.id.startsWith(KNOB_CHANNEL_ID)) {
             let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, "")) - 1;
             configUI.device.knobChannels[index] = event.target.selectedIndex + 1;
 
-        } else if( event.target.id.startsWith(KNOB_CC_ID) ) {
+        } else if (event.target.id.startsWith(KNOB_CC_ID)) {
             let index = parseInt(event.target.id.replace(KNOB_CC_ID, "")) - 1;
             configUI.device.knobCCs[index] = event.target.selectedIndex;
 
@@ -304,19 +304,19 @@ class ConfigUI {
         console.log("configReceivedCallback", modelId, protocolVersion, firmwareVersion, data); // TODO remove
 
         // Check modelId
-        if(modelId == MODEL_ID) {
+        if (modelId == MODEL_ID) {
 
             // Check protocolVersion
-            if(protocolVersion == configUI.device.protocolVersion) {
+            if (protocolVersion == configUI.device.protocolVersion) {
 
                 // Try to process
-                if(configUI.device.unserialize(data)) {
+                if (configUI.device.unserialize(data)) {
 
                     configUI.checkForGlobalChannel();
                     configUI.updateSettings();
                     configUI.showSettings();
                     configUI.showMessage(`Updated from ${configUI.device.name}. Firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}`);
-    
+
                 } else {
                     configUI.showMessage("Invalid data received.")
                 }
@@ -324,7 +324,7 @@ class ConfigUI {
             } else {
                 configUI.showMessage(`Incompatible firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}<br>Requires firmware using protocol version ${configUI.device.protocolVersion}`)
             }
-            
+
         } else {
             configUI.showMessage("Incompatible device selected.")
         }

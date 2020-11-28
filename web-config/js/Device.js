@@ -47,13 +47,13 @@ class Device {
 
                 serialize() {
                     let data = []
-                    
-                    for(let i = 0; i < this.numKnobs; i ++) {
+
+                    for (let i = 0; i < this.numKnobs; i++) {
                         data.push(this.knobChannels[i]);
                         data.push(this.knobCCs[i]);
                     }
 
-                    for(let i = 0; i < this.numKeys; i ++) {
+                    for (let i = 0; i < this.numKeys; i++) {
                         data.push(this.keyNotes[i]);
                     }
 
@@ -67,24 +67,24 @@ class Device {
 
                     const EXPECTED_DATA_LEN = 96;
 
-                    if( data.length == EXPECTED_DATA_LEN ) {
+                    if (data.length == EXPECTED_DATA_LEN) {
 
                         const KEYS_DATA_START = this.numKnobs * 2;
                         const EXTRA_DATA_START = KEYS_DATA_START + this.numKeys;
-                        
+
                         // Knob channels and CCs
                         let knobIndex = 0;
-                        for(let i = 0; i < KEYS_DATA_START; i += 2) {
+                        for (let i = 0; i < KEYS_DATA_START; i += 2) {
                             this.knobChannels[knobIndex] = Math.min(Math.max(data[i], 1), 16);
                             this.knobCCs[knobIndex] = Math.min(Math.max(data[i + 1], 0), 127);
-                            knobIndex ++;
+                            knobIndex++;
                         }
 
                         // Key notes
                         let keyIndex = 0;
-                        for(let i = KEYS_DATA_START; i < EXTRA_DATA_START; i ++) {
+                        for (let i = KEYS_DATA_START; i < EXTRA_DATA_START; i++) {
                             this.keyNotes[keyIndex] = Math.min(Math.max(data[i], 0), 127);
-                            keyIndex ++;
+                            keyIndex++;
                         }
 
                         this.keyChannel = Math.min(Math.max(data[EXTRA_DATA_START], 1), 16);
@@ -100,7 +100,7 @@ class Device {
             }
         ]
 
-        for(let k in devices[modelId]) {
+        for (let k in devices[modelId]) {
             this[k] = devices[modelId][k];
         }
         this.initValues();

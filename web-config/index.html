@@ -23,7 +23,8 @@
                 Use this page to configure a connected MIDI Mixer One.
             </p>
             <p>
-                Start by selecting the MIDI input and output then <strong>request</strong> the current configuration. Make any changes and <strong>send</strong> them back to the hardware.
+                Start by selecting the MIDI input and output then <strong>request</strong> the current configuration.
+                Make any changes and <strong>send</strong> them back to the hardware.
             </p>
             <p>
                 <a href="https://github.com/markwheeler/midi-mixer-one/wiki">More information</a>
@@ -41,7 +42,8 @@
             </div>
 
             <div class="section">
-                <button id="requestButton" type="button">Request</button><button id="sendButton" disabled=true type="button">Send</button>
+                <button id="requestButton" type="button">Request</button><button id="sendButton" disabled=true
+                    type="button">Send</button>
                 <br>
                 <button id="dummyResponseButton" type="button">Send Dummy Response</button>
             </div>
@@ -51,16 +53,16 @@
             <p id="messageContent">
             </p>
         </div>
-        
+
         <div id="settings" class="hidden">
             <div id="deviceSettings"></div>
             <div class="section">
                 <button id="defaultsButton" type="button">Defaults</button>
             </div>
         </div>
-        
+
     </div>
-    
+
     <script src="js/Device.js"></script>
     <script src="js/MidiComms.js"></script>
     <script src="js/ConfigUI.js"></script>
