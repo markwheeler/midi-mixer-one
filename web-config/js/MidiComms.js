@@ -93,7 +93,6 @@ class MidiComms {
         }
 
         if (portsChanged) {
-            console.log("MIDI ports changed");
             this._midiIn = [...newMidiIn];
             this._midiOut = [...newMidiOut];
             this.devicesUpdatedCallback(this._midiIn, this._midiOut);
@@ -113,8 +112,6 @@ class MidiComms {
 
         // Check input
         if (event.target == this._midiIn[this.inDeviceIndex]) {
-
-            // console.log("Received MIDI message", event); // TODO remove
 
             // Check if sysex
             if (event.data[0] === SYSEX_START && event.data[event.data.length - 1] === SYSEX_END) {

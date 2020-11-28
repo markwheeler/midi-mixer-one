@@ -14,7 +14,7 @@ const DEFAULTS_BUTTON_ID = "defaultsButton";
 
 class ConfigUI {
 
-    constructor() {
+    init() {
 
         this._midiComms = new MidiComms();
         this._midiComms.readyCallback = this.midiReadyCallback;
@@ -310,7 +310,7 @@ class ConfigUI {
 
     configReceivedCallback(modelId, protocolVersion, firmwareVersion, data) {
 
-        console.log("configReceivedCallback", modelId, protocolVersion, firmwareVersion, data); // TODO remove
+        // console.log("configReceivedCallback", modelId, protocolVersion, firmwareVersion, data);
 
         // Check modelId
         if (modelId == MODEL_ID) {
@@ -351,4 +351,5 @@ class ConfigUI {
 
 document.addEventListener('DOMContentLoaded', (event) => {
     configUI = new ConfigUI();
+    configUI.init();
 })
