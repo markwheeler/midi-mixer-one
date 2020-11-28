@@ -331,7 +331,7 @@ class ConfigUI {
                 }
 
             } else {
-                configUI.showMessage(`Incompatible firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}<br>Requires firmware using protocol version ${configUI.device.protocolVersion}`)
+                configUI.showMessage(`Incompatible firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}<br>Requires firmware that uses protocol version ${configUI.device.protocolVersion}`)
             }
 
         } else {
