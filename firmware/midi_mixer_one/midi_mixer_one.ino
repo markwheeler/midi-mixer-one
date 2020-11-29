@@ -54,8 +54,11 @@ const byte MANUFACTURER_ID[] =  {0x7D, 0x00, 0x00};
 #define RESPONSE                0x02
 #define RESPONSE_LENGTH         107
 #define RESPONSE_HEADER_LENGTH  9
+#define WRITE_FAILED            0x03
+#define WRITE_FAILED_LENGTH     6
 const byte SYSEX_RESPONSE_HEADER[] = {MANUFACTURER_ID[0], MANUFACTURER_ID[1], MANUFACTURER_ID[2], MODEL_ID, PROTOCOL_VERSION, RESPONSE,
                                      FIRMWARE_VERSION[0], FIRMWARE_VERSION[1], FIRMWARE_VERSION[2]};
+const byte SYSEX_WRITE_FAILED[] = {MANUFACTURER_ID[0], MANUFACTURER_ID[1], MANUFACTURER_ID[2], MODEL_ID, PROTOCOL_VERSION, WRITE_FAILED};
 
 // Vars
 byte potChannels[NUM_POTS];
@@ -190,16 +193,22 @@ byte* readEeprom() {
   return serialData;
 }
 
-void writeEeprom(byte* serialData) {
+bool writeEeprom(byte* serialData) {
+  bool success = true;
+  
   for(unsigned i = 0; i < SERIAL_DATA_LENGTH; i ++) {
     EEPROM.update(i, serialData[i]);
-
-    // TODO debug to remove
-    if(EEPROM.read(i) != serialData[i]) {
-      Serial.print("WARNING! Data write error at ");
-      Serial.println(i);
+    
+    // NOTE: Checking every byte here, ideally remove in future if EEPROM.update() is proven reliable.
+    if(success && EEPROM.read(i) != serialData[i]) {
+      success = false;
     }
   }
+
+  Serial.print("EEPROM write success ");
+  Serial.println(success);
+  
+  return success;
 }
 
 byte* serialize() {
@@ -323,13 +332,20 @@ void sendSysexConfig() {
   usbMIDI.sendSysEx(RESPONSE_HEADER_LENGTH + SERIAL_DATA_LENGTH, sysexData, false);
 }
 
+void sendWriteFailed() {
+  usbMIDI.sendSysEx(WRITE_FAILED_LENGTH, SYSEX_WRITE_FAILED, false);
+}
+
 void storeSysexConfig(const byte* sysexData) {
   
   byte trimmedData[SERIAL_DATA_LENGTH];
   memcpy(trimmedData, sysexData + STORE_HEADER_LENGTH * sizeof(byte) - 1, SERIAL_DATA_LENGTH * sizeof(byte));
   
   unserialize(trimmedData);
-  writeEeprom(trimmedData);
+  
+  if(!writeEeprom(trimmedData)) {
+    sendWriteFailed();
+  }
 }
 
 void loop() {

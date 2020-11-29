@@ -7,6 +7,7 @@ const MANUFACTURER_ID = [0x7D, 0x00, 0x00];
 const REQUEST = 0x00;
 const STORE = 0x01;
 const RESPONSE = 0x02;
+const WRITE_FAILED = 0x03;
 
 
 class MidiComms {
@@ -22,7 +23,8 @@ class MidiComms {
         this.accessBlockedCallback = function () { };
         this.failedToStartCallback = function () { };
         this.devicesUpdatedCallback = function (devicesIn, devicesOut) { };
-        this.configReceivedCallback = function (modelId) { };
+        this.configReceivedCallback = function (modelId, protocolVersion, firmwareVersion, data) { };
+        this.writeFailedCallback = function(modelId, protocolVersion) { };
         this.configSentCallback = function () { };
         this.requestSentCallback = function () { };
     }
@@ -124,6 +126,11 @@ class MidiComms {
 
                         // Callback: modelId, protocolVersion, firmwareVersion, data
                         this.configReceivedCallback(event.data[4], event.data[5], event.data.slice(7, 10), event.data.slice(10, -1));
+                    
+                    } else if (event.data[6] === WRITE_FAILED) {
+
+                        // Callback: modelId, protocolVersion
+                        this.writeFailedCallback(event.data[4], event.data[5]);
                     }
                 }
             }

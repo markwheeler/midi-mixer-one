@@ -22,6 +22,7 @@ class ConfigUI {
         this._midiComms.failedToStartCallback = this.midiFailedToStartCallback;
         this._midiComms.devicesUpdatedCallback = this.devicesUpdatedCallback;
         this._midiComms.configReceivedCallback = this.configReceivedCallback;
+        this._midiComms.writeFailedCallback = this.writeFailedCallback;
         this._midiComms.configSentCallback = this.configSentCallback;
         this._midiComms.requestSentCallback = this.requestSentCallback;
         this._midiComms.connect();
@@ -258,6 +259,7 @@ class ConfigUI {
             configUI.device.sendAllKey = event.target.selectedIndex;
 
         } else if (event.target.id.startsWith(KEY_NOTE_ID)) {
+            // TODO error here
             let index = parseInt(event.target.id.replace(KEY_NOTE_ID, "")) - 1;
             configUI.device.keyNote[index] = event.target.selectedIndex;
 
@@ -272,6 +274,14 @@ class ConfigUI {
         }
 
         configUI.hideMessage();
+    }
+
+    incompatibleDevice() {
+        configUI.showMessage("Incompatible device selected.")
+    }
+
+    incompatibleProtocol() {
+        configUI.showMessage(`Incompatible firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}<br>Requires firmware that uses protocol version ${configUI.device.protocolVersion}`)
     }
 
 
@@ -335,11 +345,30 @@ class ConfigUI {
                 }
 
             } else {
-                configUI.showMessage(`Incompatible firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}<br>Requires firmware that uses protocol version ${configUI.device.protocolVersion}`)
+                configUI.incompatibleProtocol();
             }
 
         } else {
-            configUI.showMessage("Incompatible device selected.")
+            configUI.incompatibleDevice();
+        }
+    }
+
+    writeFailedCallback(modelId, protocolVersion) {
+
+        // Check modelId
+        if (modelId == MODEL_ID) {
+
+            // Check protocolVersion
+            if (protocolVersion == configUI.device.protocolVersion) {
+
+                configUI.showMessage("Failed to store config. Please send again.")
+
+            } else {
+                configUI.incompatibleProtocol();
+            }
+
+        } else {
+            configUI.incompatibleDevice();
         }
     }
 
