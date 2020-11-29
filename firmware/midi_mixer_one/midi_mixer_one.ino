@@ -196,7 +196,7 @@ void writeEeprom(byte* serialData) {
 
     // TODO debug to remove
     if(EEPROM.read(i) != serialData[i]) {
-      Serial.print("WARNING! Data error at ");
+      Serial.print("WARNING! Data write error at ");
       Serial.println(i);
     }
   }
