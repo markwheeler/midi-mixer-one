@@ -185,6 +185,10 @@ class ConfigUI {
         if (useGlobalChannel) {
             document.getElementById(`${GLOBAL_CHANNEL_ID}`).selectedIndex = configUI.device.keyChannel;
             configUI.enableGlobalChannel();
+        
+        } else {
+            document.getElementById(`${GLOBAL_CHANNEL_ID}`).selectedIndex = 0;
+            configUI.disableGlobalChannel();
         }
     }
 
