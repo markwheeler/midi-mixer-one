@@ -259,9 +259,8 @@ class ConfigUI {
             configUI.device.sendAllKey = event.target.selectedIndex;
 
         } else if (event.target.id.startsWith(KEY_NOTE_ID)) {
-            // TODO error here
             let index = parseInt(event.target.id.replace(KEY_NOTE_ID, "")) - 1;
-            configUI.device.keyNote[index] = event.target.selectedIndex;
+            configUI.device.keyNotes[index] = event.target.selectedIndex;
 
         } else if (event.target.id.startsWith(KNOB_CHANNEL_ID)) {
             let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, "")) - 1;
