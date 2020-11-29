@@ -2,7 +2,6 @@
 // Mark Eats / Mark Wheeler
 // Uses snippets from https://github.com/dxinteractive/ResponsiveAnalogRead/
 
-// TODO switch format
 const byte FIRMWARE_VERSION[] = {2, 0, 0};
 
 #include <EEPROM.h>
@@ -96,7 +95,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   
-  unserialize(readEEPROM());
+  unserialize(readEeprom());
   
   usbMIDI.setHandleSystemExclusive(processSysexChunk);
 }
@@ -183,30 +182,27 @@ void readSwitches() {
   }
 }
 
-byte* readEEPROM() {
-
-  Serial.println("Read EEPROM");
-  
+byte* readEeprom() {
   static byte serialData[SERIAL_DATA_LENGTH];
-  
   for(unsigned i = 0; i < SERIAL_DATA_LENGTH; i ++) {
     serialData[i] = EEPROM.read(i);
   }
   return serialData;
 }
 
-void writeEEPROM(byte* serialData) {
-  
-  Serial.println("Write EEPROM");
-  
+void writeEeprom(byte* serialData) {
   for(unsigned i = 0; i < SERIAL_DATA_LENGTH; i ++) {
-    EEPROM.write(i, serialData[i]);
+    EEPROM.update(i, serialData[i]);
+
+    // TODO debug to remove
+    if(EEPROM.read(i) != serialData[i]) {
+      Serial.print("WARNING! Data error at ");
+      Serial.println(i);
+    }
   }
 }
 
 byte* serialize() {
-
-  Serial.println("Serialize");
   
   static byte serialData[SERIAL_DATA_LENGTH];
   unsigned a = 0;
@@ -230,8 +226,6 @@ byte* serialize() {
 }
 
 void unserialize(byte* serialData) {
-
-  Serial.println("Unserialize");
   
   const byte SWITCHES_DATA_START = NUM_POTS * 2;
   const byte EXTRA_DATA_START = SWITCHES_DATA_START + NUM_SWITCHES;
@@ -256,13 +250,6 @@ void unserialize(byte* serialData) {
 }
 
 void processSysexChunk(const byte* sysexData, uint16_t length, bool last) {
-
-  // TODO remove
-  Serial.println("processSysexChunk------");
-  for(unsigned i = 0; i < length; i ++) {
-    Serial.println(sysexData[i]);
-  }
-  Serial.println("------");
   
   if(incomingSysexLength + length <= STORE_LENGTH ) {
     
@@ -297,6 +284,7 @@ void processSysex(const byte* sysexData, uint16_t length) {
 
         // Check protocol
         if(sysexData[5] != PROTOCOL_VERSION) {
+          Serial.println("Incompatible protocol");
           sendSysexProtocolVersion();
 
         } else {
@@ -321,7 +309,6 @@ void processSysex(const byte* sysexData, uint16_t length) {
 }
 
 void sendSysexProtocolVersion() {
-  // TODO test again
   usbMIDI.sendSysEx(RESPONSE_HEADER_LENGTH, SYSEX_RESPONSE_HEADER, false);
 }
 
@@ -332,13 +319,6 @@ void sendSysexConfig() {
 
   memcpy(sysexData, SYSEX_RESPONSE_HEADER, RESPONSE_HEADER_LENGTH * sizeof(byte));
   memcpy(sysexData + RESPONSE_HEADER_LENGTH * sizeof(byte), configData, SERIAL_DATA_LENGTH * sizeof(byte));
-
-  //TODO remove
-//  Serial.println("Sending config");
-//  for(int i = 0; i < RESPONSE_HEADER_LENGTH + SERIAL_DATA_LENGTH; i ++) {
-//    Serial.println(sysexData[i]);
-//  }
-//  Serial.println("--------");
   
   usbMIDI.sendSysEx(RESPONSE_HEADER_LENGTH + SERIAL_DATA_LENGTH, sysexData, false);
 }
@@ -349,7 +329,7 @@ void storeSysexConfig(const byte* sysexData) {
   memcpy(trimmedData, sysexData + STORE_HEADER_LENGTH * sizeof(byte) - 1, SERIAL_DATA_LENGTH * sizeof(byte));
   
   unserialize(trimmedData);
-  writeEEPROM(trimmedData);
+  writeEeprom(trimmedData);
 }
 
 void loop() {
