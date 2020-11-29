@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>MIDI Mixer One Config</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="robots" content="all">
+    <meta name="robots" content="noindex, follow">
+
+    <link rel="stylesheet" href="css/styles.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+
+    <div id="content">
+        <div id="intro" class="section">
+            <h1>MIDI Mixer One</h1>
+            <p>
+                Use this page to configure a connected MIDI Mixer One.
+            </p>
+            <p>
+                Start by selecting the MIDI input and output then <strong>request</strong> the current configuration.
+                Make any changes and <strong>send</strong> them back to the hardware.
+            </p>
+            <p>
+                <a href="https://github.com/markwheeler/midi-mixer-one/wiki">More information</a>
+            </p>
+        </div>
+
+        <div id="setup" class="hidden">
+            <div class="section">
+                <div class="item">
+                    <label for="selectIn" class="itemName">MIDI Input</label><select id="selectIn"></select>
+                </div>
+                <div class="item">
+                    <label for="selectOut" class="itemName">MIDI Output</label><select id="selectOut"></select>
+                </div>
+            </div>
+
+            <div class="section">
+                <button id="requestButton" type="button">Request</button><button id="sendButton" type="button" disabled>Send</button>
+            </div>
+        </div>
+
+        <div id="message" class="info invisible">
+            <p id="messageContent">
+            </p>
+        </div>
+
+        <div id="settings" class="hidden">
+            <div id="deviceSettings"></div>
+            <div class="section">
+                <button id="defaultsButton" type="button">Defaults</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/Device.js"></script>
+    <script src="js/MidiComms.js"></script>
+    <script src="js/ConfigUI.js"></script>
+</body>
+
+</html>
