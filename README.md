@@ -1,5 +1,5 @@
 # MIDI Mixer One
-MIDI Mixer One is a mixer-style MIDI controller built around Teensy.
+MIDI Mixer One is a mixer-style USB MIDI controller built around Teensy.
 
 [More info in the wiki](https://github.com/markwheeler/midi-mixer-one/wiki)
 
