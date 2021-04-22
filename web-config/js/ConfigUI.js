@@ -2,8 +2,11 @@ const MODEL_ID = 0;
 
 const GLOBAL_CHANNEL_ID = "globalChannel";
 const KEY_CHANNEL_ID = "keyChannel";
+const SHIFT_KEY_ID = "shiftKey";
 const SEND_ALL_KEY_ID = "sendAllKey";
-const KEY_NOTE_ID = "keyNote";
+const KEY_TYPE_ID = "keyType";
+const KEY_VALUE_ID = "keyValue";
+const KEY_SHIFT_VALUE_ID = "keyShiftValue";
 const KNOB_CHANNEL_ID = "knobChannel";
 const KNOB_CC_ID = "knobCC";
 const SELECT_IN_ID = "selectIn";
@@ -69,10 +72,18 @@ class ConfigUI {
         let midiChannelRange = [];
         let midiRange = [];
         let keyRange = ["None"];
+        let keyWithShiftRange = ["None"];
+        let keyTypes = ["Note", "CC"];
 
         for (let i = 1; i < 17; i++) { midiChannelRange[i] = i; }
         for (let i = 0; i < 128; i++) { midiRange[i] = i; }
-        for (let i = 1; i <= this.device.numKeys; i++) { keyRange.push(i); }
+        for (let i = 1; i <= this.device.numKeys; i++) {
+            keyRange.push(i);
+            keyWithShiftRange.push(i);
+        }
+        for (let i = 1; i <= this.device.numKeys; i++) {
+            keyWithShiftRange.push("Shift + " + i);
+        }
 
         let settings = document.getElementById("deviceSettings");
 
@@ -84,13 +95,14 @@ class ConfigUI {
         // Keypad
         let keypadSection = this._generateSection();
         keypadSection.appendChild(this._generateItem("Keypad", [KEY_CHANNEL_ID], ["Channel"], [midiChannelRange]));
-        keypadSection.appendChild(this._generateItem("Send All CCs", [SEND_ALL_KEY_ID], ["Key"], [keyRange]));
+        keypadSection.appendChild(this._generateItem("Shift", [SHIFT_KEY_ID], ["Key"], [keyRange]));
+        keypadSection.appendChild(this._generateItem("Send All CCs", [SEND_ALL_KEY_ID], ["Key"], [keyWithShiftRange]));
         settings.appendChild(keypadSection);
 
         // Keys
         let keysSection = this._generateSection();
         for (let i = 0; i < this.device.numKeys; i++) {
-            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`${KEY_NOTE_ID}${i + 1}`], ["Note"], [midiRange]));
+            keysSection.appendChild(this._generateItem(`Key ${i + 1}`, [`${KEY_TYPE_ID}${i + 1}`, `${KEY_VALUE_ID}${i + 1}`, `${KEY_SHIFT_VALUE_ID}${i + 1}`], ["Type", "Value", "Shift Value"], [keyTypes, midiRange, midiRange]));
         }
         settings.appendChild(keysSection);
 
@@ -161,15 +173,23 @@ class ConfigUI {
     updateSettings() {
 
         for (let i = 0; i < configUI.device.numKnobs; i++) {
-            document.getElementById(`${KNOB_CHANNEL_ID}${i + 1}`).selectedIndex = configUI.device.knobChannels[i] - 1;
+            document.getElementById(`${KNOB_CHANNEL_ID}${i + 1}`).selectedIndex = configUI.device.knobChannels[i];
             document.getElementById(`${KNOB_CC_ID}${i + 1}`).selectedIndex = configUI.device.knobCCs[i];
         }
 
         for (let i = 0; i < configUI.device.numKeys; i++) {
-            document.getElementById(`${KEY_NOTE_ID}${i + 1}`).selectedIndex = configUI.device.keyNotes[i];
+            document.getElementById(`${KEY_TYPE_ID}${i + 1}`).selectedIndex = configUI.device.keyTypes[i];
+            document.getElementById(`${KEY_VALUE_ID}${i + 1}`).selectedIndex = configUI.device.keyValues[i];
+            document.getElementById(`${KEY_SHIFT_VALUE_ID}${i + 1}`).selectedIndex = configUI.device.keyShiftValues[i];
         }
 
-        document.getElementById(`${KEY_CHANNEL_ID}`).selectedIndex = configUI.device.keyChannel - 1;
+        document.getElementById(`${KEY_CHANNEL_ID}`).selectedIndex = configUI.device.keyChannel;
+        document.getElementById(`${SHIFT_KEY_ID}`).selectedIndex = configUI.device.shiftKey;
+        if (configUI.device.shiftKey > 0) {
+            this.enableShiftValues();
+        } else {
+            this.disableShiftValues();
+        }
         document.getElementById(`${SEND_ALL_KEY_ID}`).selectedIndex = configUI.device.sendAllKey;
     }
 
@@ -184,7 +204,7 @@ class ConfigUI {
         }
 
         if (useGlobalChannel) {
-            document.getElementById(`${GLOBAL_CHANNEL_ID}`).selectedIndex = configUI.device.keyChannel;
+            document.getElementById(`${GLOBAL_CHANNEL_ID}`).selectedIndex = configUI.device.keyChannel + 1;
             configUI.enableGlobalChannel();
         
         } else {
@@ -205,6 +225,18 @@ class ConfigUI {
             document.getElementById(`${KNOB_CHANNEL_ID}${i + 1}`).disabled = false;
         }
         document.getElementById(KEY_CHANNEL_ID).disabled = false;
+    }
+
+    enableShiftValues() {
+        for (let i = 0; i < configUI.device.numKeys; i++) {
+            document.getElementById(`${KEY_SHIFT_VALUE_ID}${i + 1}`).disabled = false;
+        }
+    }
+
+    disableShiftValues() {
+        for (let i = 0; i < configUI.device.numKeys; i++) {
+            document.getElementById(`${KEY_SHIFT_VALUE_ID}${i + 1}`).disabled = true;
+        }
     }
 
 
@@ -242,9 +274,9 @@ class ConfigUI {
         if (event.target.id.startsWith(GLOBAL_CHANNEL_ID)) {
             if (event.target.selectedIndex > 0) {
                 for (let i = 0; i < configUI.device.numKnobs; i++) {
-                    configUI.device.knobChannels[i] = event.target.selectedIndex;
+                    configUI.device.knobChannels[i] = event.target.selectedIndex - 1;
                 }
-                configUI.device.keyChannel = event.target.selectedIndex;
+                configUI.device.keyChannel = event.target.selectedIndex - 1;
                 configUI.enableGlobalChannel();
                 configUI.updateSettings();
 
@@ -253,18 +285,36 @@ class ConfigUI {
             }
 
         } else if (event.target.id.startsWith(KEY_CHANNEL_ID)) {
-            configUI.device.keyChannel = event.target.selectedIndex + 1;
+            configUI.device.keyChannel = event.target.selectedIndex;
+
+        } else if (event.target.id.startsWith(SHIFT_KEY_ID)) {
+            configUI.device.shiftKey = event.target.selectedIndex;
+            if (event.target.selectedIndex > 0) {
+                configUI.enableShiftValues();
+                configUI.updateSettings();
+
+            } else {
+                configUI.disableShiftValues();
+            }
 
         } else if (event.target.id.startsWith(SEND_ALL_KEY_ID)) {
             configUI.device.sendAllKey = event.target.selectedIndex;
 
-        } else if (event.target.id.startsWith(KEY_NOTE_ID)) {
-            let index = parseInt(event.target.id.replace(KEY_NOTE_ID, "")) - 1;
-            configUI.device.keyNotes[index] = event.target.selectedIndex;
+        } else if (event.target.id.startsWith(KEY_TYPE_ID)) {
+            let index = parseInt(event.target.id.replace(KEY_TYPE_ID, "")) - 1;
+            configUI.device.keyTypes[index] = event.target.selectedIndex;
+
+        } else if (event.target.id.startsWith(KEY_VALUE_ID)) {
+            let index = parseInt(event.target.id.replace(KEY_VALUE_ID, "")) - 1;
+            configUI.device.keyValues[index] = event.target.selectedIndex;
+
+        } else if (event.target.id.startsWith(KEY_SHIFT_VALUE_ID)) {
+            let index = parseInt(event.target.id.replace(KEY_SHIFT_VALUE_ID, "")) - 1;
+            configUI.device.keyShiftValues[index] = event.target.selectedIndex;
 
         } else if (event.target.id.startsWith(KNOB_CHANNEL_ID)) {
             let index = parseInt(event.target.id.replace(KNOB_CHANNEL_ID, "")) - 1;
-            configUI.device.knobChannels[index] = event.target.selectedIndex + 1;
+            configUI.device.knobChannels[index] = event.target.selectedIndex;
 
         } else if (event.target.id.startsWith(KNOB_CC_ID)) {
             let index = parseInt(event.target.id.replace(KNOB_CC_ID, "")) - 1;
