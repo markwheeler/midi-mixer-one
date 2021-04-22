@@ -279,8 +279,8 @@ class ConfigUI {
         configUI.showMessage("Incompatible device selected.")
     }
 
-    incompatibleProtocol() {
-        configUI.showMessage(`Incompatible firmware version ${firmwareVersion[0]}.${firmwareVersion[1]}.${firmwareVersion[2]}<br>Requires firmware that uses protocol version ${configUI.device.protocolVersion}`)
+    incompatibleProtocol(protocolVersion) {
+        configUI.showMessage(`The controller firmware is using protocol version ${protocolVersion}.<br>This tool requires firmware that uses protocol version ${configUI.device.protocolVersion}.<br>You may need to update the firmware.`)
     }
 
 
@@ -344,7 +344,7 @@ class ConfigUI {
                 }
 
             } else {
-                configUI.incompatibleProtocol();
+                configUI.incompatibleProtocol(protocolVersion);
             }
 
         } else {
@@ -363,7 +363,7 @@ class ConfigUI {
                 configUI.showMessage("Failed to store config. Please send again.")
 
             } else {
-                configUI.incompatibleProtocol();
+                configUI.incompatibleProtocol(protocolVersion);
             }
 
         } else {
