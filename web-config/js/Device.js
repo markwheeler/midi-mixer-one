@@ -35,6 +35,7 @@ class Device {
                 defaultKeyTypes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 defaultKeyValues: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
                 defaultKeyShiftValues: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                defaultKeyBehaviors: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 defaultKeyChannel: 0,
                 defaultShiftKey: 0,
                 defaultSendAllKey: 1,
@@ -44,6 +45,7 @@ class Device {
                     this.knobCCs = [...this.defaultKnobCCs];
                     this.keyChannel = this.defaultKeyChannel;
                     this.keyTypes = [...this.defaultKeyTypes];
+                    this.keyBehaviors = [...this.defaultKeyBehaviors];
                     this.keyValues = [...this.defaultKeyValues];
                     this.keyShiftValues = [...this.defaultKeyShiftValues];
                     this.shiftKey = this.defaultShiftKey;
@@ -62,11 +64,12 @@ class Device {
                         dataBitsArray.push(7);
                     }
 
-                    // 1bit keyType, 7bit keyValue, 7bit keyShiftValue
+                    // 1bit keyType, 1bit keyBehavior, 7bit keyValue, 7bit keyShiftValue
                     for (let i = 0; i < this.numKeys; i++) {
                         dataBitsArray.push(1);
                         dataBitsArray.push(7);
                         dataBitsArray.push(7);
+                        dataBitsArray.push(1);
                     }
 
                     // 4bit keyChannel, 4bit shiftKey, 5bit sendAllKey
@@ -148,6 +151,7 @@ class Device {
                         data.push(this.keyTypes[i]);
                         data.push(this.keyValues[i]);
                         data.push(this.keyShiftValues[i]);
+                        data.push(this.keyBehaviors[i]);
                     }
 
                     data.push(this.keyChannel);
@@ -174,7 +178,7 @@ class Device {
                     if (unserialized.length == EXPECTED_DATA_LEN) {
 
                         const KEYS_DATA_START = this.numKnobs * 2;
-                        const EXTRA_DATA_START = KEYS_DATA_START + this.numKeys * 3;
+                        const EXTRA_DATA_START = KEYS_DATA_START + this.numKeys * 4;
 
                         // Knob channels and CCs
                         let knobIndex = 0;
@@ -184,12 +188,13 @@ class Device {
                             knobIndex++;
                         }
 
-                        // Key types and values
+                        // Key types, values, and behaviors
                         let keyIndex = 0;
-                        for (let i = KEYS_DATA_START; i < EXTRA_DATA_START; i += 3) {
+                        for (let i = KEYS_DATA_START; i < EXTRA_DATA_START; i += 4) {
                             this.keyTypes[keyIndex] = Math.min(Math.max(unserialized[i], 0), 1);
                             this.keyValues[keyIndex] = Math.min(Math.max(unserialized[i + 1], 0), 127);
                             this.keyShiftValues[keyIndex] = Math.min(Math.max(unserialized[i + 2], 0), 127);
+                            this.keyBehaviors[keyIndex] = Math.min(Math.max(unserialized[i + 3], 0), 1);
                             keyIndex++;
                         }
 
