@@ -13,6 +13,8 @@ const byte FIRMWARE_VERSION[] = {2, 1, 0};
 #define POT_ACTIVITY_THRESHOLD  2 // Sleep zone
 
 // Switch params
+#define MOMENTARY 0
+#define TOGGLE 1
 #define BOUNCE_LOCK_OUT
 #define SWITCH_INTERVAL         5 // ms
 #include <Bounce2.h>
@@ -57,8 +59,8 @@ const byte SYSEX_RESPONSE_HEADER[] = {MANUFACTURER_ID[0], MANUFACTURER_ID[1], MA
                                      };
 const byte SYSEX_WRITE_FAILED[] = {MANUFACTURER_ID[0], MANUFACTURER_ID[1], MANUFACTURER_ID[2], MODEL_ID, PROTOCOL_VERSION, WRITE_FAILED};
 
-#define UNPACKED_BYTE_DATA_LENGTH 121
-#define PACKED_BYTE_DATA_LENGTH   92
+#define UNPACKED_BYTE_DATA_LENGTH 121 + NUM_SWITCHES
+#define PACKED_BYTE_DATA_LENGTH   92 + (NUM_SWITCHES + 7) / 8
 #define BIN_DATA_LENGTH           644
 byte dataBitsArray[UNPACKED_BYTE_DATA_LENGTH];
 
@@ -73,6 +75,8 @@ byte shiftSwitch; // 0 for none
 byte sendAllSwitch; // 0 for none
 bool shiftActive = false;
 bool downSwitches[NUM_SWITCHES] = {false};
+bool switchBehavior[NUM_SWITCHES];
+bool switchToggles[NUM_SWITCHES] = {false};
 
 float potValues[NUM_POTS];
 byte potMidiValues[NUM_POTS];
@@ -100,6 +104,9 @@ void setup() {
     switches[i].attach(SWITCH_PINS[i]);
     switches[i].interval(SWITCH_INTERVAL);
   }
+
+  // testing
+  // switchBehavior[3] = TOGGLE;
 
   // LED
   pinMode(LED_BUILTIN, OUTPUT);
@@ -182,21 +189,45 @@ byte getSwitchValue(byte index) {
 }
 
 void switchDown(byte index) {
-  downSwitches[index] = true;
-  if (switchTypes[index]) {
-    usbMIDI.sendControlChange(getSwitchValue(index), 127, switchChannel + 1);
-  } else {
-    usbMIDI.sendNoteOn(getSwitchValue(index), 127, switchChannel + 1);
+  if (!downSwitches[index]) {
+    downSwitches[index] = true;
+    
+    byte valueToSend;
+    if (shiftActive) {
+      valueToSend = switchShiftValues[index];
+    } else {
+      valueToSend = switchValues[index];
+    }
+
+    if (switchBehavior[index] == TOGGLE) {
+      switchToggles[index] = !switchToggles[index];
+      valueToSend = switchToggles[index] ? 127 : 0;
+    } else {
+      valueToSend = 127;
+    }
+    if (switchTypes[index]) {
+      usbMIDI.sendControlChange(valueToSend, valueToSend, switchChannel + 1);
+    } else {
+      usbMIDI.sendNoteOn(valueToSend, valueToSend, switchChannel + 1);
+    }
   }
 }
 
 void switchUp(byte index) {
   if (downSwitches[index]) {
     downSwitches[index] = false;
-    if (switchTypes[index]) {
-      usbMIDI.sendControlChange(getSwitchValue(index), 0, switchChannel + 1);
-    } else {
-      usbMIDI.sendNoteOff(getSwitchValue(index), 0, switchChannel + 1);
+    if (switchBehavior[index] == MOMENTARY) {
+      byte valueToSend;
+      if (shiftActive) {
+        valueToSend = switchShiftValues[index];
+      } else {
+        valueToSend = switchValues[index];
+      }
+      if (switchTypes[index]) {
+        usbMIDI.sendControlChange(valueToSend, 0, switchChannel + 1);
+      } else {
+        usbMIDI.sendNoteOff(valueToSend, 0, switchChannel + 1);
+      }
     }
   }
 }
@@ -278,13 +309,15 @@ void generateDataBitsArray() {
     p ++;
   }
 
-  // 1bit switchType, 7bit switchValue, 7bit switchShiftValue
+  // 1bit switchType, 1bit switchBehavior 7bit switchValue, 7bit switchShiftValue
   for (unsigned i = 0; i < NUM_SWITCHES; i++) {
     dataBitsArray[p] = 1;
     p ++;
     dataBitsArray[p] = 7;
     p ++;
     dataBitsArray[p] = 7;
+    p ++;
+    dataBitsArray[p] = 1;
     p ++;
   }
 
@@ -362,7 +395,8 @@ byte* serialize() {
     serialData[a] = switchTypes[i];
     serialData[a + 1] = switchValues[i];
     serialData[a + 2] = switchShiftValues[i];
-    a += 3;
+    serialData[a + 3] = switchBehavior[i];
+    a += 4;
   }
 
   serialData[a] = switchChannel;
@@ -386,9 +420,8 @@ void unserialize(byte* serialData) {
   // Unserialize that binary array into data of varying bit lengths
   byte* unserialized = bitsToNumberArray(unserializedBinArray, true);
 
-
   const byte SWITCHES_DATA_START = NUM_POTS * 2;
-  const byte EXTRA_DATA_START = SWITCHES_DATA_START + NUM_SWITCHES * 3;
+  const byte EXTRA_DATA_START = SWITCHES_DATA_START + NUM_SWITCHES * 4;
 
   // Pot channels and CCs
   unsigned potIndex = 0;
@@ -400,11 +433,12 @@ void unserialize(byte* serialData) {
 
   // Switch notes
   unsigned switchIndex = 0;
-  for (unsigned i = SWITCHES_DATA_START; i < EXTRA_DATA_START; i += 3) {
+  for (unsigned i = SWITCHES_DATA_START; i < EXTRA_DATA_START; i += 4) {
     switchTypes[switchIndex] = constrain(unserialized[i], 0, 1);
     switchValues[switchIndex] = constrain(unserialized[i + 1], 0, 127);
     switchShiftValues[switchIndex] = constrain(unserialized[i + 2], 0, 127);
-    switchIndex ++;
+    switchBehavior[switchIndex] = constrain(unserialized[i + 3], 0, 1);
+    switchIndex++;
   }
 
   switchChannel = constrain(unserialized[EXTRA_DATA_START], 0, 15);
